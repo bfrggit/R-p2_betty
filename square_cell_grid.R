@@ -3,8 +3,8 @@ setClass(
     "SquareCellGrid",
     
     representation(
-        num_cells_1 = "integer",
-        num_cells_2 = "integer",
+        num_cells_1 = "integer",        # number of rows
+        num_cells_2 = "integer",        # number of cols
         num_offset_1 = "integer",
         num_offset_2 = "integer",
         cell_len_x = "numeric",         # WE direction length
@@ -74,6 +74,16 @@ setMethod(
             ncol = num_cells_2,
             byrow = TRUE
         )
+        rownames(mat_numbering) = paste(
+            as.character((0:(num_cells_1 - 1) + num_offset_1) * cell_len_y),
+            "",
+            sep = "_"
+        )
+        colnames(mat_numbering) = paste(
+            as.character((0:(num_cells_2 - 1) + num_offset_2) * cell_len_x),
+            "",
+            sep = "_"
+        )
         new("SquareCellGrid",
             num_cells_1 = num_cells_1,
             num_cells_2 = num_cells_2,
@@ -107,8 +117,8 @@ setMethod(
     ),
     
     function(object, x, y) {
-        bnd_lt = -object@num_offset_1 * object@cell_len_x
-        bnd_tp = -object@num_offset_2 * object@cell_len_y
+        bnd_lt = object@num_offset_2 * object@cell_len_x
+        bnd_tp = object@num_offset_1 * object@cell_len_y
         stopifnot(x > bnd_lt)
         stopifnot(y > bnd_tp)
         stopifnot(x < bnd_lt + ncol(object@numbering) * object@cell_len_x)
@@ -162,7 +172,86 @@ setMethod(
     ),
     
     function(object, x, y) {
-        c = x_y_to_cell_1_2(object, x, y)
-        cell_1_2_to_num(object, c[1], c[2])
+        c_c = x_y_to_cell_1_2(object, x, y)
+        cell_1_2_to_num(object, c_c[1], c_c[2]) # RETURN
+    }
+)
+
+setGeneric(
+    "cell_num_to_1_2",
+    
+    valueClass = "integer",
+    
+    function(object, c_n) {
+        standardGeneric("cell_num_to_1_2")
+    }
+)
+
+setMethod(
+    "cell_num_to_1_2",
+    
+    signature(
+        object = "SquareCellGrid",
+        c_n = "integer"
+    ),
+    
+    function(object, c_n) {
+        stopifnot(c_n > 0)
+        stopifnot(c_n <= object@num_cells_1 * object@num_cells_2)
+        c_1 = (c_n - 1L) %/% object@num_cells_2 + 1L
+        c_2 = (c_n - 1L)  %% object@num_cells_2 + 1L
+        c(c_1, c_2) # RETURN
+    }
+)
+
+setGeneric(
+    "cell_1_2_to_x_y",
+    
+    valueClass = "numeric",
+    
+    function(object, c_1, c_2) {
+        standardGeneric("cell_1_2_to_x_y")
+    }
+)
+
+setMethod(
+    "cell_1_2_to_x_y",
+    
+    signature(
+        object = "SquareCellGrid",
+        c_1 = "integer",
+        c_2 = "integer"
+    ),
+    
+    function(object, c_1, c_2) {
+        x_min = (c_2 - 1 + object@num_offset_2) * 1 * object@cell_len_x
+        x_max = x_min + object@cell_len_x
+        y_min = (c_1 - 1 + object@num_offset_1) * 1 * object@cell_len_y
+        y_max = y_min + object@cell_len_y
+        c(x_min, x_max, y_min, y_max) # RETURN
+    }
+)
+
+setGeneric(
+    "cell_num_to_x_y",
+    
+    valueClass = "numeric",
+    
+    function(object, c_n) {
+        standardGeneric("cell_num_to_x_y")
+    }
+)
+
+setMethod(
+    "cell_num_to_x_y",
+    
+    signature(
+        object = "SquareCellGrid",
+        c_n = "integer"
+    ),
+    
+    function(object, c_n) {
+        c_c = cell_num_to_1_2(object, c_n)
+        cell_1_2_to_x_y(object, c_c[1], c_c[2]) # RETURN
     }
 )
