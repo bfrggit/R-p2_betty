@@ -5,7 +5,7 @@
 if(!exists("EX_ELEMENT_RAND_R")) {
     EX_ELEMENT_RAND_R <<- TRUE
 
-    source("lib/basic.r")
+    source("lib/basic.R")
 
 # GENERATE RANDOM sensing capacity matrix for all nodes
 get_capacity_mat_rand <<- function(val_n, val_k, p) {

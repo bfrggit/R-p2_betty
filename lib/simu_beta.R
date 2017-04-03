@@ -88,9 +88,10 @@ simulate_beta <<- function(
             grid                = grid,
             data_type_specs     = data_type_specs,
             capacity_mat        = capacity_mat,
-            get_placement_f     = get_placement_f, # FIXME: not implemented
+            get_placement_f     = get_placement_f,
             verbose             = verbose
         ) # FIXME: not implemented
+
         # TODO: calculate objective function values and keep track of them
     }
 }
