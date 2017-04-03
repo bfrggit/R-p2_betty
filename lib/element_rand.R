@@ -1,26 +1,21 @@
-# basic_util.R
+# element_rand.R
 #
 # Author: Charles Zhu
 
-# RETURN z_ notation strings
-z_nd_str = function(str_z, val_n) {
-    stopifnot(is.character(str_z))
-    stopifnot(is.integer(val_n))
-    stopifnot(val_n > 0)
-    stopifnot(length(str_z) == 1)
-    
-    paste(str_z, as.character(1:val_n), sep = "_") # RETURN
-}
+if(!exists("EX_ELEMENT_RAND_R")) {
+    EX_ELEMENT_RAND_R <<- TRUE
+
+    source("lib/basic.r")
 
 # GENERATE RANDOM sensing capacity matrix for all nodes
-get_capacity_mat_rand = function(val_n, val_k, p) {
+get_capacity_mat_rand <<- function(val_n, val_k, p) {
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_k))
     stopifnot(val_n > 0)
     stopifnot(val_k > 0)
     stopifnot(is.numeric(p))    # p is the probablity of ONE assignments
     stopifnot(p > 0 && p <= 1)
-    
+
     mat_c = matrix(
         0,
         nrow = val_n,
@@ -36,7 +31,7 @@ get_capacity_mat_rand = function(val_n, val_k, p) {
 }
 
 # GENERATE RANDOM data type specs
-get_data_type_spec_df_rand = function(val_k, r_max) {
+get_data_type_spec_df_rand <<- function(val_k, r_max) {
     stopifnot(is.integer(val_k))
     stopifnot(val_k > 0)
     stopifnot(is.numeric(r_max))    # r_max is the maximum data rate
@@ -56,7 +51,7 @@ get_data_type_spec_df_rand = function(val_k, r_max) {
 }
 
 # GENERATE LOCAL ONLY impact functions
-make_impact_f_local_only = function(val_k) {
+make_impact_f_local_only <<- function(val_k) {
     for(knd in 1:val_k) {
         do.call(
             "<<-",
@@ -65,7 +60,7 @@ make_impact_f_local_only = function(val_k) {
                 function(x) {
                     stopifnot(is.numeric(x))
                     stopifnot(x >= 0)
-                    
+
                     ifelse(x > 0, 0, 1)
                 }
             )
@@ -77,10 +72,12 @@ make_impact_f_local_only = function(val_k) {
                 function(x) {
                     stopifnot(is.numeric(x))
                     stopifnot(x >= 0)
-                    
+
                     ifelse(x > 0, 0, 1)
                 }
             )
         )
     }
 }
+
+} # ENDIF

@@ -1,6 +1,13 @@
+# simu_beta.R
+#
+# Author: Charles Zhu
+
+if(!exists("EX_SIMU_BETA_R")) {
+    EX_SIMU_BETA_R <<- TRUE
+
 # PRIMARY SIMULATION function
 # handle loops for a complete simulation
-simulate_beta = function(
+simulate_beta <<- function(
     t_frame,                # time frame length, sec
     duration,               # total length of simulation in simulated time, sec
     val_n,
@@ -19,27 +26,27 @@ simulate_beta = function(
     stopifnot(is.integer(duration))
     stopifnot(t_frame > 0)
     stopifnot(duration > 0)
-    
+
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_m))
     stopifnot(is.integer(val_k))
     stopifnot(val_n > 0)
     stopifnot(val_m > 0)
     stopifnot(val_k > 0)
-    
+
     stopifnot(is.data.frame(data_type_specs))
     stopifnot(nrow(data_type_specs) == val_k)
-    
+
     stopifnot(is.matrix(capacity_mat))
     stopifnot(nrow(capacity_mat) == val_n)
     stopifnot(ncol(capacity_mat) == val_k)
-    
+
     stopifnot(is.function(update_placement_f))
     stopifnot(is.function(get_placement_f))
     stopifnot(is.function(calc_work_mat_f))
-    
+
     stopifnot(is.logical(verbose))
-    
+
     for(simu_t in seq(0L, duration, by = t_frame)) {
         if(verbose) cat("Simulation time =", simu_t, "\n")
         simu_n = as.integer(simu_t %/% t_frame)
@@ -60,3 +67,5 @@ simulate_beta = function(
         # TODO: calculate objective function values and keep track of them
     }
 }
+
+} # ENDIF

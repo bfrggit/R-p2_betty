@@ -2,12 +2,15 @@
 #
 # Author: Charles Zhu
 
-get_placement_mat_rand = function(val_n, val_m) {
+if(!exists("EX_DUMMY_R")) {
+    EX_DUMMY_R <<- TRUE
+
+get_placement_mat_rand <<- function(val_n, val_m) {
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_m))
     stopifnot(val_n > 0)
     stopifnot(val_m > 0)
-    
+
     mat_g = matrix(
         0,
         nrow = val_n,
@@ -22,3 +25,5 @@ get_placement_mat_rand = function(val_n, val_m) {
     }
     mat_g # RETURN
 }
+
+} # ENDIF
