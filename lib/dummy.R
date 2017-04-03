@@ -23,6 +23,7 @@ get_placement_mat_rand <<- function(val_n, val_m) {
     for(jnd in 1:val_n) {
         mat_g[jnd, placement_per_node[jnd]] = 1
     }
+
     mat_g # RETURN
 }
 

@@ -27,6 +27,7 @@ get_capacity_mat_rand <<- function(val_n, val_k, p) {
     c_t = runif(val_n * val_k, min = 0, max = 1)
     c_p = ifelse(c_t > p, 0, 1)
     mat_c[] = c_p
+
     mat_c # RETURN
 }
 
@@ -47,7 +48,8 @@ get_data_type_spec_df_rand <<- function(val_k, r_max) {
     )
     colnames(df_d) = c("rate", "s_impact_f", "t_impact_f")
     df_d[,"rate"] = runif(val_k, min = 0, max = r_max)
-    df_d
+
+    df_d # RETURN
 }
 
 # GENERATE LOCAL ONLY impact functions
@@ -78,6 +80,8 @@ make_impact_f_local_only <<- function(val_k) {
             )
         )
     }
+
+    NA
 }
 
 } # ENDIF

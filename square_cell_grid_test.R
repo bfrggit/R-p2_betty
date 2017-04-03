@@ -46,8 +46,8 @@ cell_len_x = map_len_x / num_cells_2
 cell_len_y = map_len_y / num_cells_1
 
 for(jnd in 1L:n_grids) {
-    cat("Grid", jnd, "\n")
-    
+    cat("Grid", jnd, "of", n_grids, "\n")
+
     # CONSTRUCT test grid using parameters
     g_t = SquareCellGrid(
         num_cells_1[jnd],
@@ -57,7 +57,7 @@ for(jnd in 1L:n_grids) {
         num_offset_1[jnd],
         num_offset_2[jnd]
     )
-    
+
     # GENERATE test cases
     cord_x = runif(
         n_cases,
@@ -69,16 +69,16 @@ for(jnd in 1L:n_grids) {
         min = 0,
         max = map_len_y[jnd]
     ) + num_offset_1[jnd] * cell_len_y[jnd]
-    
+
     # RUN and COMPARE test cases
     for(knd in 1L:n_cases) {
-        cat("Case", knd, "-", "")
+        cat("Case", knd, "of", n_cases, "-", "")
         c_n = x_y_to_cell_num(g_t, cord_x[knd], cord_y[knd])
         comp_x_y = cell_num_to_x_y(g_t, c_n)
         stopifnot(cord_x[knd] >= comp_x_y[1] && cord_x[knd] < comp_x_y[2])
         stopifnot(cord_y[knd] >= comp_x_y[3] && cord_y[knd] < comp_x_y[4])
         cat("PASS", "\n")
     }
-    
+
     cat("\n")
 }

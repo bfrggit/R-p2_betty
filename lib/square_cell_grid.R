@@ -91,6 +91,7 @@ setMethod(
             "",
             sep = "_"
         )
+
         new("SquareCellGrid",
             num_cells_1 = num_cells_1,
             num_cells_2 = num_cells_2,
@@ -132,6 +133,7 @@ setMethod(
         stopifnot(y < bnd_tp + nrow(object@numbering) * object@cell_len_y)
         c_2 = as.integer((x - bnd_lt) / object@cell_len_x) + 1L
         c_1 = as.integer((y - bnd_tp) / object@cell_len_y) + 1L
+
         c(c_1, c_2) # RETURN
     }
 )
@@ -180,6 +182,7 @@ setMethod(
 
     function(object, x, y) {
         c_c = x_y_to_cell_1_2(object, x, y)
+
         cell_1_2_to_num(object, c_c[1], c_c[2]) # RETURN
     }
 )
@@ -207,6 +210,7 @@ setMethod(
         stopifnot(c_n <= object@num_cells_1 * object@num_cells_2)
         c_1 = (c_n - 1L) %/% object@num_cells_2 + 1L
         c_2 = (c_n - 1L)  %% object@num_cells_2 + 1L
+
         c(c_1, c_2) # RETURN
     }
 )
@@ -235,6 +239,7 @@ setMethod(
         x_max = x_min + object@cell_len_x
         y_min = (c_1 - 1 + object@num_offset_1) * 1 * object@cell_len_y
         y_max = y_min + object@cell_len_y
+
         c(x_min, x_max, y_min, y_max) # RETURN
     }
 )
@@ -259,6 +264,7 @@ setMethod(
 
     function(object, c_n) {
         c_c = cell_num_to_1_2(object, c_n)
+
         cell_1_2_to_x_y(object, c_c[1], c_c[2]) # RETURN
     }
 )
@@ -289,6 +295,7 @@ setMethod(
         c_c_2 = cell_num_to_1_2(object, c_n_2)
         dif_1 = (c_c_1[1] - c_c_2[1]) * object@cell_len_y
         dif_2 = (c_c_1[2] - c_c_2[2]) * object@cell_len_x
+
         sqrt(dif_1 * dif_1 + dif_2 * dif_2) # RETURN
     }
 )
