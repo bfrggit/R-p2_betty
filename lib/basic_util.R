@@ -1,3 +1,7 @@
+# basic_util.R
+#
+# Author: Charles Zhu
+
 # RETURN z_ notation strings
 z_nd_str = function(str_z, val_n) {
     stopifnot(is.character(str_z))

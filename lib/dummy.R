@@ -1,3 +1,7 @@
+# dummy.R
+#
+# Author: Charles Zhu
+
 get_placement_mat_rand = function(val_n, val_m) {
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_m))

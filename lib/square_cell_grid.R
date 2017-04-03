@@ -1,3 +1,7 @@
+# square_cell_grid.R
+#
+# Author: Charles Zhu
+
 # CLASS DEFINITION OF SquareCellGrid
 setClass(
     "SquareCellGrid",
@@ -253,5 +257,35 @@ setMethod(
     function(object, c_n) {
         c_c = cell_num_to_1_2(object, c_n)
         cell_1_2_to_x_y(object, c_c[1], c_c[2]) # RETURN
+    }
+)
+
+setGeneric(
+    "cell_dist",
+    
+    valueClass = "numeric",
+    
+    function(object, c_n_1, c_n_2) {
+        standardGeneric("cell_dist")
+    }
+)
+
+setMethod(
+    "cell_dist",
+    
+    signature(
+        object = "SquareCellGrid",
+        c_n_1 = "integer",
+        c_n_2 = "integer"
+    ),
+    
+    function(object, c_n_1, c_n_2) {
+        if(c_n_1 == c_n_2) return(0)
+        
+        c_c_1 = cell_num_to_1_2(object, c_n_1)
+        c_c_2 = cell_num_to_1_2(object, c_n_2)
+        dif_1 = (c_c_1[1] - c_c_2[1]) * object@cell_len_y
+        dif_2 = (c_c_1[2] - c_c_2[2]) * object@cell_len_x
+        sqrt(dif_1 * dif_1 + dif_2 * dif_2) # RETURN
     }
 )
