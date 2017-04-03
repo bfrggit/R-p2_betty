@@ -90,7 +90,7 @@ simulate_beta <<- function(
             capacity_mat        = capacity_mat,
             get_placement_f     = get_placement_f,
             verbose             = verbose
-        ) # FIXME: not implemented
+        )
 
         # TODO: calculate objective function values and keep track of them
     }
