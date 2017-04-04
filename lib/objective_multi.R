@@ -21,8 +21,10 @@ objective_zero <<- function() {
     obj_zero # RETURN
 }
 
-get_objective_zero <<- function(...) {
-    objective_zero() # RETURN
+get_objective_zero_f <<- function() {
+    function(...) {
+        objective_zero() # RETURN
+    } # RETURN
 }
 
 objective_multi <<- function(
@@ -46,8 +48,10 @@ objective_multi <<- function(
     objective_zero()
 }
 
-get_objective_multi <<- function(...) {
-    objective_multi(...) # RETURN
+get_objective_multi_f <<- function() {
+    function(...) {
+        objective_multi(...) # RETURN
+    } # RETURN
 }
 
 } # ENDIF
