@@ -5,6 +5,9 @@
 if(!exists("EX_SIMU_BETA_R")) {
     EX_SIMU_BETA_R <<- TRUE
 
+    source("lib/basic.R")
+    source("lib/objective_multi.R")
+
 # PRIMARY SIMULATION function
 # handle loops for a complete simulation
 simulate_beta <<- function(
@@ -20,6 +23,7 @@ simulate_beta <<- function(
     update_placement_f,     # function to update node placement
     get_placement_f,        # function to get placement matrix
     calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
+    get_objective_f,        # function to get objective values
     verbose = FALSE
 ) {
     # CHECK ARGUMENT TYPES
@@ -46,6 +50,7 @@ simulate_beta <<- function(
     stopifnot(is.function(update_placement_f))
     stopifnot(is.function(get_placement_f))
     stopifnot(is.function(calc_work_mat_f))
+    stopifnot(is.function(get_objective_f))
 
     stopifnot(is.logical(verbose))
 
@@ -62,7 +67,27 @@ simulate_beta <<- function(
     duration_frames = duration %/% t_frame
     stopifnot(is.integer(duration_frames))
 
-    work_mat_history = array(0, dim = c(val_n, val_k, duration_frames))
+    work_mat_history = array(
+        0,
+        dim = c(val_n, val_k, duration_frames)
+    )
+    dimnames(work_mat_history)[[1]] <<- z_nd_str("n", val_n)
+    dimnames(work_mat_history)[[2]] <<- z_nd_str("d", val_k)
+    dimnames(work_mat_history)[[3]] <<- z_cl_str("frame", 0L:duration_frames)
+
+    objective_acc = objective_zero()
+    objective_history = data.frame(
+        matrix(
+            objective_acc,
+            nrow = duration_frames + 1L,
+            ncol = ncol(objective_acc),
+            byrow = TRUE
+        ),
+        row.names = z_cl_str("frame", 0L:duration_frames),
+        check.names = TRUE,
+        fix.empty.names = TRUE
+    )
+    colnames(objective_history) = colnames(objective_acc)
 
     # MAIN LOOP
     for(simu_n in 0L:duration_frames) {
@@ -91,9 +116,28 @@ simulate_beta <<- function(
             get_placement_f     = get_placement_f,
             verbose             = verbose
         )
+        work_mat_history[, , simu_n + 1L] = work_mat
 
-        # TODO: calculate objective function values and keep track of them
+        # calculate objective function values and keep track of them
+        # could be slow if not designed carefully
+        objective_frame = get_objective_f(
+            t_frame             = t_frame,
+            simu_n              = simu_n,
+            val_n               = val_n,
+            val_m               = val_m,
+            val_k               = val_k,
+            grid                = grid,
+            data_type_specs     = data_type_specs,
+            capacity_mat        = capacity_mat,
+            get_placement_f     = get_placement_f,
+            work_mat_history    = work_mat_history,
+            verbose             = verbose
+        )
+        objective_acc = objective_acc + objective_frame
+        objective_history[simu_n, ] = objective_frame
     }
+
+    NA
 }
 
 } # ENDIF
