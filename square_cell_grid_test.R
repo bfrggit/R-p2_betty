@@ -5,26 +5,26 @@ cat("\n")
 source("lib/square_cell_grid.R")
 
 n_grids = 40L               # number of test grids
-lockBinding("n_grids", globalenv())
 n_cases = 100L              # number of cases per test grid
+lockBinding("n_grids", globalenv())
 lockBinding("n_cases", globalenv())
 
 num_cells_1_max = 100       # maximum number of cells in each col
-lockBinding("num_cells_1_max", globalenv())
 num_cells_2_max = 100       # maximum number of cells in each row
-lockBinding("num_cells_2_max", globalenv())
 num_offset_1_max = 200      # maximum number of dim 1 offset
-lockBinding("num_offset_1_max", globalenv())
 num_offset_2_max = 200      # maximum number of dim 2 offset
+lockBinding("num_cells_1_max", globalenv())
+lockBinding("num_cells_2_max", globalenv())
+lockBinding("num_offset_1_max", globalenv())
 lockBinding("num_offset_2_max", globalenv())
 
 map_len_x_min = 1000        # minimum WE length of map
-lockBinding("map_len_x_min", globalenv())
 map_len_x_max = 10000       # maximum WE length of map
-lockBinding("map_len_x_max", globalenv())
 map_len_y_min = map_len_x_min
-lockBinding("map_len_y_min", globalenv())
 map_len_y_max = map_len_x_max
+lockBinding("map_len_x_min", globalenv())
+lockBinding("map_len_x_max", globalenv())
+lockBinding("map_len_y_min", globalenv())
 lockBinding("map_len_y_max", globalenv())
 
 # GENERATE test grid parameters
