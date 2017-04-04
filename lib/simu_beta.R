@@ -29,15 +29,20 @@ simulate_beta <<- function(
     # CHECK ARGUMENT TYPES
     stopifnot(is.integer(t_frame))
     stopifnot(is.integer(duration))
-    stopifnot(t_frame > 0)
-    stopifnot(duration > 0)
+    stopifnot(length(t_frame) == 1L)
+    stopifnot(length(duration) == 1L)
+    stopifnot(t_frame > 0L)
+    stopifnot(duration > 0L)
 
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_m))
     stopifnot(is.integer(val_k))
-    stopifnot(val_n > 0)
-    stopifnot(val_m > 0)
-    stopifnot(val_k > 0)
+    stopifnot(length(val_n) == 1L)
+    stopifnot(length(val_m) == 1L)
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_n > 0L)
+    stopifnot(val_m > 0L)
+    stopifnot(val_k > 0L)
 
     stopifnot(is.data.frame(data_type_specs))
     stopifnot(nrow(data_type_specs) == val_k)
@@ -69,13 +74,14 @@ simulate_beta <<- function(
 
     work_mat_history = array(
         0,
-        dim = c(val_n, val_k, duration_frames)
+        dim = c(val_n, val_k, duration_frames + 1L)
     )
-    dimnames(work_mat_history)[[1]] <<- z_nd_str("n", val_n)
-    dimnames(work_mat_history)[[2]] <<- z_nd_str("d", val_k)
-    dimnames(work_mat_history)[[3]] <<- z_cl_str("frame", 0L:duration_frames)
+    dimnames(work_mat_history)[[1]] = z_nd_str("n", val_n)
+    dimnames(work_mat_history)[[2]] = z_nd_str("d", val_k)
+    dimnames(work_mat_history)[[3]] = z_cl_str("frame", 0L:duration_frames)
 
     objective_acc = objective_zero()
+    rownames(objective_acc) = c("acc")
     objective_history = data.frame(
         matrix(
             objective_acc,
@@ -136,8 +142,10 @@ simulate_beta <<- function(
         objective_acc = objective_acc + objective_frame
         objective_history[simu_n, ] = objective_frame
     }
+    objective_avg = objective_acc / (duration_frames + 1L)
+    rownames(objective_avg) = "average"
 
-    NA
+    objective_avg# RETURN
 }
 
 } # ENDIF

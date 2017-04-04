@@ -23,6 +23,12 @@ lockBinding("num_nodes", globalenv())
 lockBinding("num_cells", globalenv())
 lockBinding("num_types", globalenv())
 
+# general simulation SETTINGS
+t_frame = 60L
+duration = 3600L
+lockBinding("t_frame", globalenv())
+lockBinding("duration", globalenv())
+
 # mode-specific simulation SETTINGS
 capacity_p = 0.8
 lockBinding("capacity_p", globalenv())
@@ -75,4 +81,23 @@ get_objective_f = get_objective_zero
 # RUN the simulation
 source("lib/simu_beta.R")
 
+objective_avg = simulate_beta(
+    t_frame                 = t_frame,
+    duration                = duration,
+    val_n                   = num_nodes,
+    val_m                   = num_cells,
+    val_k                   = num_types,
+    grid                    = grid,
+    data_type_specs         = data_type_spec_df,
+    capacity_mat            = capacity_mat,
+    create_placement_f      = create_placement_f,
+    update_placement_f      = update_placement_f,
+    get_placement_f         = get_placement_f,
+    calc_work_mat_f         = calc_work_mat_f,
+    get_objective_f         = get_objective_f,
+    verbose                 = TRUE
+)
 
+cat("\n")
+cat("Objective(s)","\n")
+print(objective_avg)

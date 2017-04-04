@@ -20,12 +20,12 @@ setClass(
     ),
 
     prototype = list(
-        numbering = matrix(NA, 0, 0)
+        numbering = matrix(NA, 0L, 0L)
     ),
 
     validity = function(object) {
-        if(object@num_cells_1 <= 0)     return(FALSE)
-        if(object@num_cells_2 <= 0)     return(FALSE)
+        if(object@num_cells_1 <= 0L)     return(FALSE)
+        if(object@num_cells_2 <= 0L)     return(FALSE)
         if(object@cell_len_x <= 0)      return(FALSE)
         if(object@cell_len_y <= 0)      return(FALSE)
         if(nrow(object@numbering) != object@num_cells_1)    return(FALSE)
@@ -72,22 +72,32 @@ setMethod(
         num_offset_1,
         num_offset_2
     ) {
-        stopifnot(num_cells_1 > 0)
-        stopifnot(num_cells_2 > 0)
+        stopifnot(length(num_cells_1) == 1L)
+        stopifnot(length(num_cells_2) == 1L)
+        stopifnot(num_cells_1 > 0L)
+        stopifnot(num_cells_2 > 0L)
+
+        stopifnot(length(cell_len_x) == 1L)
+        stopifnot(length(cell_len_y) == 1L)
+        stopifnot(cell_len_x > 0)
+        stopifnot(cell_len_y > 0)
+
+        stopifnot(length(num_offset_1) == 1L)
+        stopifnot(length(num_offset_2) == 1L)
 
         mat_numbering = matrix(
-            1:(num_cells_1 * num_cells_2),
+            1L:(num_cells_1 * num_cells_2),
             nrow = num_cells_1,
             ncol = num_cells_2,
             byrow = TRUE
         )
         rownames(mat_numbering) = paste(
-            as.character((0:(num_cells_1 - 1) + num_offset_1) * cell_len_y),
+            as.character((0L:(num_cells_1 - 1L) + num_offset_1) * cell_len_y),
             "",
             sep = "_"
         )
         colnames(mat_numbering) = paste(
-            as.character((0:(num_cells_2 - 1) + num_offset_2) * cell_len_x),
+            as.character((0L:(num_cells_2 - 1L) + num_offset_2) * cell_len_x),
             "",
             sep = "_"
         )
@@ -207,7 +217,9 @@ setMethod(
 
     function(object, c_n) {
         stopifnot(c_n > 0)
+        stopifnot(length(c_n) == 1)
         stopifnot(c_n <= object@num_cells_1 * object@num_cells_2)
+
         c_1 = (c_n - 1L) %/% object@num_cells_2 + 1L
         c_2 = (c_n - 1L)  %% object@num_cells_2 + 1L
 

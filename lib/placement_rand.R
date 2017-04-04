@@ -17,15 +17,20 @@ create_placement_rand <<- function(
     # CHECK ARGUMENT TYPES
     stopifnot(is.integer(t_frame))
     stopifnot(is.integer(duration))
-    stopifnot(t_frame > 0)
-    stopifnot(duration > 0)
+    stopifnot(length(t_frame) == 1L)
+    stopifnot(length(duration) == 1L)
+    stopifnot(t_frame > 0L)
+    stopifnot(duration > 0L)
 
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_m))
     stopifnot(is.integer(val_k))
-    stopifnot(val_n > 0)
-    stopifnot(val_m > 0)
-    stopifnot(val_k > 0)
+    stopifnot(length(val_n) == 1L)
+    stopifnot(length(val_m) == 1L)
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_n > 0L)
+    stopifnot(val_m > 0L)
+    stopifnot(val_k > 0L)
 
     duration_frames = duration %/% t_frame
     stopifnot(is.integer(duration_frames))
@@ -50,10 +55,10 @@ update_placement_rand <<- function(t_frame, simu_n) {
     val_m = dim(placement_rand_roll)[2]
     duration_frames = dim(placement_rand_roll)[3]
 
-    stopifnot(simu_n >= 0 && simu_n <= duration_frames)
+    stopifnot(simu_n >= 0L && simu_n <= duration_frames)
 
     placement_per_node = as.integer(runif(val_n, min = 1, max = val_m + 1))
-    for(jnd in 1:val_n) {
+    for(jnd in 1L:val_n) {
         placement_rand_roll[jnd, placement_per_node[jnd], simu_n + 1L] <<- 1
     }
 

@@ -11,9 +11,13 @@ if(!exists("EX_ELEMENT_RAND_R")) {
 get_capacity_mat_rand <<- function(val_n, val_k, p) {
     stopifnot(is.integer(val_n))
     stopifnot(is.integer(val_k))
-    stopifnot(val_n > 0)
-    stopifnot(val_k > 0)
+    stopifnot(length(val_n) == 1L)
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_n > 0L)
+    stopifnot(val_k > 0L)
+
     stopifnot(is.numeric(p))    # p is the probablity of ONE assignments
+    stopifnot(length(p) == 1L)
     stopifnot(p > 0 && p <= 1)
 
     mat_c = matrix(
@@ -34,8 +38,11 @@ get_capacity_mat_rand <<- function(val_n, val_k, p) {
 # GENERATE RANDOM data type specs
 get_data_type_spec_df_rand <<- function(val_k, r_max) {
     stopifnot(is.integer(val_k))
-    stopifnot(val_k > 0)
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_k > 0L)
+
     stopifnot(is.numeric(r_max))    # r_max is the maximum data rate
+    stopifnot(length(r_max) == 1L)
     stopifnot(r_max > 0)
 
     df_d = data.frame(
@@ -54,7 +61,11 @@ get_data_type_spec_df_rand <<- function(val_k, r_max) {
 
 # GENERATE LOCAL ONLY impact functions
 make_impact_f_local_only <<- function(val_k) {
-    for(knd in 1:val_k) {
+    stopifnot(is.integer(val_k))
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_k > 0L)
+
+    for(knd in 1L:val_k) {
         do.call(
             "<<-",
             list(
@@ -81,7 +92,7 @@ make_impact_f_local_only <<- function(val_k) {
         )
     }
 
-    NA
+    NA # NO RETURN
 }
 
 } # ENDIF

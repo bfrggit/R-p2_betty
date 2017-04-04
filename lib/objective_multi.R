@@ -42,7 +42,7 @@ objective_multi <<- function(
     # very often. no type check occurs here. data types should be checked in
     # the simulation script
 
-    # FIXME
+    # FIXME: not implemented
     objective_zero()
 }
 
