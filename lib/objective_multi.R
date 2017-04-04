@@ -45,7 +45,8 @@ objective_multi <<- function(
     # the simulation script
 
     # FIXME: not implemented
-    objective_zero()
+    # objective_zero()
+
 }
 
 get_objective_multi_f <<- function() {
