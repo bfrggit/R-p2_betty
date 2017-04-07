@@ -76,7 +76,7 @@ calc_work_mat_f = calc_work_mat_fill_1
 
 source("lib/objective_multi.R")
 
-get_objective_f = get_objective_zero_f()
+get_objective_f = get_objective_multi_f()
 
 # RUN the simulation
 source("lib/simu_beta.R")
