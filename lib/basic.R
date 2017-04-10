@@ -62,9 +62,30 @@ proto_impact_local_only <<- function(x) {
 get_impact_f_type <<- function(type, ...) {
     stopifnot(is.character(type))
     stopifnot(length(type) == 1)
+
     function(x) {
         do.call(
             paste("proto_impact", type, sep = "_"),
+            list(x, ...)
+        )
+    }
+}
+
+# PROTOTYPE of BINARY util functions
+proto_util_binary <<- function(vec) {
+    stopifnot(is.numeric(vec))
+
+    any(vec >= 1)
+}
+
+# general GETTER of util functions
+get_util_f_type <<- function(type, ...) {
+    stopifnot(is.character(type))
+    stopifnot(length(type) == 1)
+
+    function(x) {
+        do.call(
+            paste("proto_util", type, sep = "_"),
             list(x, ...)
         )
     }

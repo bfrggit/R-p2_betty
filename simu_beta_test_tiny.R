@@ -62,7 +62,16 @@ data_type_spec_df = get_data_type_spec_df_rand(
     val_k = num_types,
     r_max = rate_max
 )
-make_impact_f_local_only(val_k = num_types)
+make_s_impact_f_type(
+    type = "step",
+    val_k = num_types,
+    step = 250
+)
+make_t_impact_f_type(
+    type = "step",
+    val_k = num_types,
+    step = 1
+)
 
 source("lib/placement_rand.R")
 
