@@ -72,6 +72,7 @@ make_t_impact_f_type(
     val_k = num_types,
     step = 1
 )
+local_util_f = get_util_f_type("binary")
 
 source("lib/placement_rand.R")
 
@@ -104,6 +105,7 @@ objective_avg = simulate_beta(
     get_placement_f         = get_placement_f,
     calc_work_mat_f         = calc_work_mat_f,
     get_objective_f         = get_objective_f,
+    local_util_f            = local_util_f,
     verbose                 = TRUE
 )
 

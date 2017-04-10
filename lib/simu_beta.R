@@ -24,6 +24,7 @@ simulate_beta <<- function(
     get_placement_f,        # function to get placement matrix
     calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
     get_objective_f,        # function to get objective values
+    local_util_f,           # function to evaluate local util in each cell
     verbose = FALSE
 ) {
     # CHECK ARGUMENT TYPES
@@ -56,6 +57,7 @@ simulate_beta <<- function(
     stopifnot(is.function(get_placement_f))
     stopifnot(is.function(calc_work_mat_f))
     stopifnot(is.function(get_objective_f))
+    stopifnot(is.function(local_util_f))
 
     stopifnot(is.logical(verbose))
 
@@ -155,6 +157,7 @@ simulate_beta <<- function(
             data_type_specs     = data_type_specs,
             capacity_mat        = capacity_mat,
             get_placement_f     = get_placement_f,
+            local_util_f        = local_util_f,
             work_mat_history    = work_mat_history,
             verbose             = verbose
         )

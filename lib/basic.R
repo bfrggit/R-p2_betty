@@ -75,7 +75,7 @@ get_impact_f_type <<- function(type, ...) {
 proto_util_binary <<- function(vec) {
     stopifnot(is.numeric(vec))
 
-    any(vec >= 1)
+    as.numeric(any(vec >= 1))
 }
 
 # general GETTER of util functions

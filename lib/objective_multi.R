@@ -38,6 +38,7 @@ objective_multi <<- function(
     data_type_specs,
     capacity_mat,
     get_placement_f,
+    local_util_f,
     work_mat_history,
     verbose = FALSE
 ) {
@@ -71,6 +72,9 @@ objective_multi <<- function(
             nrow = 1, ncol = val_k, byrow = TRUE
         )
     }
+
+    #-----------------------------------------------------------------------
+    # BEGIN EVALUATION of coverage
 
     # create x mat to keep history values for faster future calc
     if(simu_n <= 0) { # creation is done only once
@@ -156,9 +160,29 @@ objective_multi <<- function(
     # compute x_objective
     x_objective_frame = sum(x_frame_mat) / val_m / val_k
 
+    #-----------------------------------------------------------------------
+    # END EVALUATION of coverage
+
+    # compute u mat of current time frame
+    u_frame_mat = matrix(0, nrow = val_m, ncol = val_k)
+    rownames(u_frame_mat) = dimnames(x_0_mat_history)[[1]]
+    colnames(u_frame_mat) = dimnames(x_0_mat_history)[[2]]
+
+    u_frame_mat[] = apply(
+        omega_frame_mat,
+        MARGIN = c(1, 3),
+        FUN = function(omega_vec) {
+            local_util_f(omega_vec)
+        }
+    )
+
+    # compute u objective
+    u_objective_frame = sum(u_frame_mat) / val_m / val_k
+
     # construct result
     obj_res = objective_zero()
     obj_res["cover"] = x_objective_frame
+    obj_res["util"] = u_objective_frame
     obj_res # RETURN
 }
 
