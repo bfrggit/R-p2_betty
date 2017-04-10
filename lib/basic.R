@@ -78,6 +78,13 @@ proto_util_binary <<- function(vec) {
     as.numeric(any(vec >= 1))
 }
 
+# PROTOTYPE of MAX util functions
+proto_util_max <<- function(vec) {
+    stopifnot(is.numeric(vec))
+
+    max(vec)
+}
+
 # general GETTER of util functions
 get_util_f_type <<- function(type, ...) {
     stopifnot(is.character(type))

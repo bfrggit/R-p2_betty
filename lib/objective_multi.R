@@ -29,18 +29,21 @@ get_objective_zero_f <<- function() {
 }
 
 objective_multi <<- function(
-    t_frame,
-    simu_n,
+    t_frame,                # time frame length, sec
+    simu_n,                 # index of current time frame counting from 0
     val_n,
     val_m,
     val_k,
-    grid,
-    data_type_specs,
-    capacity_mat,
-    get_placement_f,
-    local_util_f,
-    work_mat_history,
-    verbose = FALSE
+    grid,                   # grid specs
+    data_type_specs,        # data type specs data frame
+    capacity_mat,           # sensing capacity matrix (should not need)
+    get_placement_f,        # function to get placement matrix
+    local_util_f,           # function to evaluate local util in each cell
+    work_mat_history,       # history of work_mat maintained by simulation
+    verbose = FALSE,
+    gamma_x,                # weight of coverage in overall obj
+    gamma_u,                # weight of util in overall obj
+    gamma_y                 # weight of number of active nodes in overall obj
 ) {
     # this function, as well as its alternatives, is supposed to be called
     # very often. no type check occurs here. data types should be checked in
@@ -179,16 +182,49 @@ objective_multi <<- function(
     # compute u objective
     u_objective_frame = sum(u_frame_mat) / val_m / val_k
 
+    # compute y vec of current time frame
+    y_frame_vec = apply(
+        work_mat_history[, , simu_n + 1L],
+        MARGIN = 1,
+        FUN = function(node_vec) {
+            1 - prod(1 - node_vec)
+        }
+    )
+
+    # compute y objective
+    y_objective_frame = sum(y_frame_vec) / val_m / val_k
+
+    # compute d vec of current time frame
+    d_frame_vec = colSums(work_mat_history[, , simu_n + 1L]) *
+                  data_type_spec_df[, "rate"]
+
+    # compute d objective
+    d_objective_frame = sum(d_frame_vec)
+
     # construct result
     obj_res = objective_zero()
     obj_res["cover"] = x_objective_frame
     obj_res["util"] = u_objective_frame
+    obj_res["traffic"] = d_objective_frame
+    obj_res["nact"] = y_objective_frame
+    obj_res["overall"] = gamma_x * x_objective_frame +
+                         gamma_u * u_objective_frame +
+                         gamma_y * y_objective_frame
     obj_res # RETURN
 }
 
-get_objective_multi_f <<- function() {
+get_objective_multi_f <<- function(gamma_x, gamma_u, gamma_y) {
+    stopifnot(is.numeric(gamma_x))
+    stopifnot(is.numeric(gamma_u))
+    stopifnot(is.numeric(gamma_y))
+
     function(...) {
-        objective_multi(...) # RETURN
+        objective_multi(
+            ...,
+            gamma_x = gamma_x,
+            gamma_u = gamma_u,
+            gamma_y = gamma_y
+        ) # RETURN
     } # RETURN
 }
 

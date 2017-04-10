@@ -23,6 +23,10 @@ lockBinding("num_nodes", globalenv())
 lockBinding("num_cells", globalenv())
 lockBinding("num_types", globalenv())
 
+gamma_x = 1
+gamma_u = 1
+gamma_y = -1
+
 # general simulation SETTINGS
 t_frame = 60L
 duration = 3600L
@@ -51,6 +55,7 @@ grid = SquareCellGrid(
 )
 
 # CREATE test case elements
+source("lib/element_base.R")
 source("lib/element_rand.R")
 
 capacity_mat = get_capacity_mat_rand(
@@ -72,7 +77,7 @@ make_t_impact_f_type(
     val_k = num_types,
     step = 1
 )
-local_util_f = get_util_f_type("binary")
+local_util_f = get_util_f_type("max")
 
 source("lib/placement_rand.R")
 
@@ -86,7 +91,11 @@ calc_work_mat_f = calc_work_mat_fill_1
 
 source("lib/objective_multi.R")
 
-get_objective_f = get_objective_multi_f()
+get_objective_f = get_objective_multi_f(
+    gamma_x = gamma_x,
+    gamma_u = gamma_u,
+    gamma_y = gamma_y
+)
 
 # RUN the simulation
 source("lib/simu_beta.R")

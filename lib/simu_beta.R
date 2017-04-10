@@ -96,6 +96,7 @@ simulate_beta <<- function(
         fix.empty.names = TRUE
     )
     colnames(objective_history) <<- colnames(objective_acc)
+    objective_avg_history <<- objective_history
 
     # MAIN LOOP
     for(simu_n in 0L:duration_frames) {
@@ -163,6 +164,8 @@ simulate_beta <<- function(
         )
         objective_acc = objective_acc + objective_frame
         objective_history[simu_n + 1L, ] <<- objective_frame
+        objective_avg = objective_acc / (simu_n + 1L)
+        objective_avg_history[simu_n + 1L, ] <<- objective_avg
     }
     objective_avg = objective_acc / (duration_frames + 1L)
     rownames(objective_avg) = "average"
