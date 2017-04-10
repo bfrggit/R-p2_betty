@@ -82,7 +82,7 @@ simulate_beta <<- function(
 
     objective_acc = objective_zero()
     rownames(objective_acc) = c("acc")
-    objective_history = data.frame(
+    objective_history <<- data.frame(
         matrix(
             objective_acc,
             nrow = duration_frames + 1L,
@@ -93,7 +93,7 @@ simulate_beta <<- function(
         check.names = TRUE,
         fix.empty.names = TRUE
     )
-    colnames(objective_history) = colnames(objective_acc)
+    colnames(objective_history) <<- colnames(objective_acc)
 
     # MAIN LOOP
     for(simu_n in 0L:duration_frames) {
@@ -110,6 +110,25 @@ simulate_beta <<- function(
             t_frame = t_frame,
             simu_n = simu_n
         )
+
+        # check placement
+        # simu_n as index should get 1L offset
+        placement_roll = get_placement_f()
+        p_sum = apply(
+            placement_roll,
+            MARGIN = c(1, 3),
+            FUN = sum
+        )[, simu_n + 1L]
+        stopifnot(all(p_sum == 1))
+        p_any = apply(
+            placement_roll[, , simu_n + 1L] == 1,
+            MARGIN = 1,
+            FUN = any
+        )
+        stopifnot(all(p_any))
+
+        # run the algorithm
+        # simu_n as index should get 1L offset
         work_mat = calc_work_mat_f(
             t_frame             = t_frame,
             simu_n              = simu_n,
@@ -140,12 +159,12 @@ simulate_beta <<- function(
             verbose             = verbose
         )
         objective_acc = objective_acc + objective_frame
-        objective_history[simu_n, ] = objective_frame
+        objective_history[simu_n + 1L, ] <<- objective_frame
     }
     objective_avg = objective_acc / (duration_frames + 1L)
     rownames(objective_avg) = "average"
 
-    objective_avg# RETURN
+    objective_avg # RETURN
 }
 
 } # ENDIF

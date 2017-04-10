@@ -3,12 +3,12 @@ rm(list = ls())
 cat("\n")
 
 # simulation CONSTANTS
-num_cells_1 = 8L
-num_cells_2 = 8L
+num_cells_1 = 4L
+num_cells_2 = 4L
 num_offset_1 = -2L
 num_offset_2 = 2L
-cell_len_x = 100
-cell_len_y = 100
+cell_len_x = 200
+cell_len_y = 200
 lockBinding("num_cells_1", globalenv())
 lockBinding("num_cells_2", globalenv())
 lockBinding("num_offset_1", globalenv())

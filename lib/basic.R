@@ -35,4 +35,39 @@ z_nd_str <<- function(str_z, val_n) {
     z_cl_str(str_z, 1L:val_n) # RETURN
 }
 
+# PROTOTYPE of LOCAL ONLY impact functions
+# proto_impact_local_only <<- function(x) {
+#     stopifnot(is.numeric(x))
+#     stopifnot(x >= 0)
+#
+#     ifelse(x > 0, 0, 1)
+# }
+
+# PROTOTYPE of STEP impact functions
+proto_impact_step <<- function(x, step) {
+    stopifnot(is.numeric(x))
+    stopifnot(is.numeric(step))
+    stopifnot(length(step) == 1)
+    stopifnot(x >= 0)
+
+    ifelse(x > step, 0, 1)
+}
+
+# PROTOTYPE of LOCAL ONLY impact functions
+proto_impact_local_only <<- function(x) {
+    proto_impact_step(x, 0)
+}
+
+# general GETTER of impact functions
+get_impact_f_type <<- function(type, ...) {
+    stopifnot(is.character(type))
+    stopifnot(length(type) == 1)
+    function(x) {
+        do.call(
+            paste("proto_impact", type, sep = "_"),
+            list(x, ...)
+        )
+    }
+}
+
 } # ENDIF

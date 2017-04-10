@@ -5,7 +5,7 @@
 if(!exists("EX_SQUARE_CELL_GRID_R")) {
     EX_SQUARE_CELL_GRID_R <<- TRUE
 
-# CLASS DEFINITION OF SquareCellGrid
+# CLASS DEFINITION of SquareCellGrid
 setClass(
     "SquareCellGrid",
 
@@ -34,7 +34,7 @@ setClass(
     }
 )
 
-# CONSTRUCTOR OF SquareCellGrid
+# CONSTRUCTOR of SquareCellGrid
 setGeneric(
     "SquareCellGrid",
 
@@ -114,7 +114,7 @@ setMethod(
     }
 )
 
-# METHODS OF SquareCellGrid
+# METHODS of SquareCellGrid
 setGeneric(
     "x_y_to_cell_1_2",
 
@@ -291,6 +291,7 @@ setGeneric(
     }
 )
 
+# METHOD to compute distance for a pair of cells using cell numbers
 setMethod(
     "cell_dist",
 
@@ -309,6 +310,39 @@ setMethod(
         dif_2 = (c_c_1[2] - c_c_2[2]) * object@cell_len_x
 
         sqrt(dif_1 * dif_1 + dif_2 * dif_2) # RETURN
+    }
+)
+
+setGeneric(
+    "cell_dist_mat",
+
+    valueClass = "matrix",
+
+    function(object) {
+        standardGeneric("cell_dist_mat")
+    }
+)
+
+# METHOD to compute distance matrix for pairs of cell numbers
+setMethod(
+    "cell_dist_mat",
+
+    signature(
+        object = "SquareCellGrid"
+    ),
+
+    function(object) {
+        val_m = object@num_cells_1 * object@num_cells_2
+        grid_dist_mat = matrix(0, nrow = val_m, ncol = val_m)
+        rownames(grid_dist_mat) = z_nd_str("c", val_m)
+        colnames(grid_dist_mat) = z_nd_str("c", val_m)
+        for(ind in 1:val_m) {
+            for(lnd in 1:val_m) {
+                grid_dist_mat[ind, lnd] = cell_dist(object, ind, lnd)
+            }
+        }
+
+        grid_dist_mat # RETURN
     }
 )
 

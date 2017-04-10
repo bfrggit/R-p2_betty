@@ -46,17 +46,80 @@ get_data_type_spec_df_rand <<- function(val_k, r_max) {
     stopifnot(r_max > 0)
 
     df_d = data.frame(
-        rep(0, val_k),
-        z_nd_str("s_impact", val_k),
-        z_nd_str("t_impact", val_k),
+        rate = rep(0, val_k),
+        s_impact_f = z_nd_str("s_impact_f", val_k),
+        t_impact_f = z_nd_str("t_impact_f", val_k),
         row.names = z_nd_str("d", val_k),
         check.names = TRUE,
-        fix.empty.names = TRUE
+        fix.empty.names = TRUE,
+        stringsAsFactors = FALSE
     )
-    colnames(df_d) = c("rate", "s_impact_f", "t_impact_f")
     df_d[,"rate"] = runif(val_k, min = 0, max = r_max)
 
     df_d # RETURN
+}
+
+# GENERATE LOCAL ONLY impact functions
+# make_impact_f_local_only <<- function(val_k) {
+#     stopifnot(is.integer(val_k))
+#     stopifnot(length(val_k) == 1L)
+#     stopifnot(val_k > 0L)
+#
+#     for(knd in 1L:val_k) {
+#         do.call(
+#             "<<-", list(
+#                 paste("s_impact_f", knd, sep = "_"),
+#                 get_impact_f_type("local_only")
+#             )
+#         )
+#         do.call(
+#             "<<-", list(
+#                 paste("t_impact_f", knd, sep = "_"),
+#                 get_impact_f_type("local_only")
+#             )
+#         )
+#     }
+#
+#     NA # NO RETURN
+# }
+
+# GENERATE impact functions using general getters
+make_s_impact_f_type <<- function(type, val_k, ...) {
+    stopifnot(is.character(type))
+    stopifnot(length(type) == 1)
+    stopifnot(is.integer(val_k))
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_k > 0L)
+
+    for(knd in 1L:val_k) {
+        do.call(
+            "<<-", list(
+                paste("s_impact_f", knd, sep = "_"),
+                get_impact_f_type(type, ...)
+            )
+        )
+    }
+
+    NA # NO RETURN
+}
+
+make_t_impact_f_type <<- function(type, val_k, ...) {
+    stopifnot(is.character(type))
+    stopifnot(length(type) == 1)
+    stopifnot(is.integer(val_k))
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_k > 0L)
+
+    for(knd in 1L:val_k) {
+        do.call(
+            "<<-", list(
+                paste("t_impact_f", knd, sep = "_"),
+                get_impact_f_type(type, ...)
+            )
+        )
+    }
+
+    NA # NO RETURN
 }
 
 # GENERATE LOCAL ONLY impact functions
@@ -65,34 +128,8 @@ make_impact_f_local_only <<- function(val_k) {
     stopifnot(length(val_k) == 1L)
     stopifnot(val_k > 0L)
 
-    for(knd in 1L:val_k) {
-        do.call(
-            "<<-",
-            list(
-                paste("s_impact_f", knd, sep = "_"),
-                function(x) {
-                    stopifnot(is.numeric(x))
-                    stopifnot(x >= 0)
-
-                    ifelse(x > 0, 0, 1)
-                }
-            )
-        )
-        do.call(
-            "<<-",
-            list(
-                paste("t_impact_f", knd, sep = "_"),
-                function(x) {
-                    stopifnot(is.numeric(x))
-                    stopifnot(x >= 0)
-
-                    ifelse(x > 0, 0, 1)
-                }
-            )
-        )
-    }
-
-    NA # NO RETURN
+    make_s_impact_f_type(type = "local_only", val_k = val_k)
+    make_t_impact_f_type(type = "local_only", val_k = val_k)
 }
 
 } # ENDIF
