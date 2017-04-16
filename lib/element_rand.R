@@ -16,7 +16,7 @@ get_capacity_mat_rand <<- function(val_n, val_k, p) {
     stopifnot(val_n > 0L)
     stopifnot(val_k > 0L)
 
-    stopifnot(is.numeric(p))    # p is the probablity of ONE assignments
+    stopifnot(is.numeric(p))    # p is the probability of ONE assignments
     stopifnot(length(p) == 1L)
     stopifnot(p > 0 && p <= 1)
 

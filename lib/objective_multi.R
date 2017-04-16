@@ -52,7 +52,7 @@ objective_multi <<- function(
     # this function must be called continuously in one simulation case
     # remove everything before starting a new case
 
-    # accquire rolling placement and other parameters
+    # acquire rolling placement and other parameters
     placement_roll = get_placement_f()
     # duration_frames = dim(placement_roll)[3] - 1
     duration_frames = dim(work_mat_history)[3] - 1
@@ -107,8 +107,8 @@ objective_multi <<- function(
     # simu_n as index should get 1L offset
     x_0_mat_history[, , simu_n + 1L] <<- x_0_frame_mat
 
-    # evalutate impact func for all cell/time combinations
-    if(simu_n <=0) { # evalutaion is done only once
+    # evaluate impact func for all cell/time combinations
+    if(simu_n <=0) { # evaluation is done only once
         grid_distance_mat <<- cell_dist_mat(grid)
         time_distance_vec <<- duration_frames:0L
         s_impact_mat_zero <<- matrix(0, nrow = val_m, ncol = val_m)
@@ -143,7 +143,7 @@ objective_multi <<- function(
             # s_imp = matrix(0, nrow = val_m, ncol = val_m)
             # t_imp = rep(0, duration_frames + 1L)
 
-            # TEST of computation speed using ALL-ONE mattrices
+            # TEST of computation speed using ALL-ONE matrices
             # s_imp = matrix(1, nrow = val_m, ncol = val_m)
             # t_imp = rep(1, duration_frames + 1L)
 
