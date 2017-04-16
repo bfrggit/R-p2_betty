@@ -31,16 +31,16 @@ lockBinding("map_len_y_max", globalenv())
 # GENERATE test grid parameters
 num_cells_1 = as.integer(runif(n_grids, min = 1, max = num_cells_1_max + 1))
 num_cells_2 = as.integer(runif(n_grids, min = 1, max = num_cells_2_max + 1))
-num_offset_1 = as.integer(runif(
+num_offset_1 = runif(
     n_grids,
     min = -num_offset_1_max,
     max = num_offset_1_max + 1
-))
-num_offset_2 = as.integer(runif(
+)
+num_offset_2 = runif(
     n_grids,
     min = -num_offset_2_max,
     max = num_offset_2_max + 1
-))
+)
 map_len_x = round(runif(n_grids, min = map_len_x_min, max = map_len_x_max), 0)
 map_len_y = round(runif(n_grids, min = map_len_y_min, max = map_len_y_max), 0)
 cell_len_x = map_len_x / num_cells_2

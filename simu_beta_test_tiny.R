@@ -7,8 +7,8 @@ require(methods)
 # simulation CONSTANTS
 num_cells_1 = 4L
 num_cells_2 = 4L
-num_offset_1 = -2L
-num_offset_2 = 2L
+num_offset_1 = -1.5
+num_offset_2 = 1.5
 cell_len_x = 200
 cell_len_y = 200
 lockBinding("num_cells_1", globalenv())

@@ -12,8 +12,8 @@ setClass(
     representation(
         num_cells_1 = "integer",        # number of rows
         num_cells_2 = "integer",        # number of cols
-        num_offset_1 = "integer",
-        num_offset_2 = "integer",
+        num_offset_1 = "numeric",
+        num_offset_2 = "numeric",
         cell_len_x = "numeric",         # WE direction length
         cell_len_y = "numeric",         # NS direction length
         numbering = "matrix"
@@ -60,8 +60,8 @@ setMethod(
         num_cells_2 = "integer",
         cell_len_x = "numeric",
         cell_len_y = "numeric",
-        num_offset_1 = "integer",
-        num_offset_2 = "integer"
+        num_offset_1 = "numeric",
+        num_offset_2 = "numeric"
     ),
 
     function(
