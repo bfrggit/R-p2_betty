@@ -5,12 +5,12 @@ cat("\n")
 require(methods)
 
 # simulation CONSTANTS
-num_cells_1 = 4L
-num_cells_2 = 4L
-num_offset_1 = -1.5
-num_offset_2 = 1.5
-cell_len_x = 200
-cell_len_y = 200
+num_cells_1 = 7L
+num_cells_2 = 9L
+cell_len_x = 500
+cell_len_y = 500
+num_offset_1 = -5 / cell_len_y
+num_offset_2 = -5 / cell_len_x
 lockBinding("num_cells_1", globalenv())
 lockBinding("num_cells_2", globalenv())
 lockBinding("num_offset_1", globalenv())
@@ -18,12 +18,15 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 20L
+num_nodes = 100L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
 lockBinding("num_cells", globalenv())
 lockBinding("num_types", globalenv())
+
+num_static = 60L
+lockBinding("num_static", globalenv())
 
 gamma_x = 1
 gamma_u = 1
@@ -72,20 +75,33 @@ data_type_spec_df = get_data_type_spec_df_rand(
 make_s_impact_f_type(
     type = "step",
     val_k = num_types,
-    step = 250
+    step = 750
 )
 make_t_impact_f_type(
     type = "step",
     val_k = num_types,
-    step = 1
+    step = 5
 )
 local_util_f = get_util_f_type("max")
 
-source("lib/placement_rand.R")
+source("lib/placement_user_locations.R")
 
-create_placement_f = create_placement_rand
-update_placement_f = update_placement_rand
-get_placement_f = get_placement_rand
+create_placement_f = get_create_placement_user_locations_f(
+    data_file = "user_locations_RData/user_locations_yusuf_sample.RData",
+    grid = grid,
+    num_static = num_static
+)
+
+# test_placement = create_placement_f(
+#     t_frame = t_frame,
+#     duration = duration,
+#     val_n = num_nodes,
+#     val_m = num_cells,
+#     val_k = num_types
+# ) # TEST
+
+update_placement_f = update_placement_user_locations
+get_placement_f = get_placement_user_locations
 
 source("lib/calc_work_fill_1.R")
 

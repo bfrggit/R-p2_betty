@@ -8,18 +8,13 @@ if(!exists("EX_OBJECTIVE_MULTI_R")) {
     source("lib/basic.R")
 
 objective_zero <<- function() {
-    obj_zero = data.frame(
+    c(
         overall = 0,
         cover   = 0,
         util    = 0,
         traffic = 0,
-        nact    = 0,
-        row.names = c("zero"),
-        check.names = TRUE,
-        fix.empty.names = TRUE
-    )
-
-    obj_zero # RETURN
+        nact    = 0
+    ) # RETURN
 }
 
 get_objective_zero_f <<- function() {
@@ -203,13 +198,13 @@ objective_multi <<- function(
 
     # construct result
     obj_res = objective_zero()
-    obj_res["cover"] = x_objective_frame
-    obj_res["util"] = u_objective_frame
-    obj_res["traffic"] = d_objective_frame
-    obj_res["nact"] = y_objective_frame
-    obj_res["overall"] = gamma_x * x_objective_frame +
-                         gamma_u * u_objective_frame +
-                         gamma_y * y_objective_frame
+    obj_res["cover"]    = x_objective_frame
+    obj_res["util"]     = u_objective_frame
+    obj_res["traffic"]  = d_objective_frame
+    obj_res["nact"]     = y_objective_frame
+    obj_res["overall"]  = gamma_x * x_objective_frame +
+                          gamma_u * u_objective_frame +
+                          gamma_y * y_objective_frame
     obj_res # RETURN
 }
 

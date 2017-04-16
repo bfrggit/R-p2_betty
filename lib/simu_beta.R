@@ -83,19 +83,14 @@ simulate_beta <<- function(
     dimnames(work_mat_history)[[3]] = z_cl_str("frame", 0L:duration_frames)
 
     objective_acc = objective_zero()
-    rownames(objective_acc) = c("acc")
-    objective_history <<- data.frame(
-        matrix(
-            objective_acc,
-            nrow = duration_frames + 1L,
-            ncol = ncol(objective_acc),
-            byrow = TRUE
-        ),
-        row.names = z_cl_str("frame", 0L:duration_frames),
-        check.names = TRUE,
-        fix.empty.names = TRUE
+    objective_history <<- matrix(
+        objective_acc,
+        nrow = duration_frames + 1L,
+        ncol = length(objective_acc),
+        byrow = TRUE
     )
     colnames(objective_history) <<- colnames(objective_acc)
+    rownames(objective_history) <<- z_cl_str("frame", 0L:duration_frames)
     objective_avg_history <<- objective_history
 
     # MAIN LOOP
@@ -168,7 +163,6 @@ simulate_beta <<- function(
         objective_avg_history[simu_n + 1L, ] <<- objective_avg
     }
     objective_avg = objective_acc / (duration_frames + 1L)
-    rownames(objective_avg) = "average"
 
     objective_avg # RETURN
 }
