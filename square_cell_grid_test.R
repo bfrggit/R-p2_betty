@@ -2,6 +2,7 @@ cat("Cleaning up the environment...", "\n")
 rm(list = ls())
 cat("\n")
 
+require(methods)
 source("lib/square_cell_grid.R")
 
 n_grids = 40L               # number of test grids

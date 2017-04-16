@@ -2,6 +2,8 @@ cat("Cleaning up the environment...", "\n")
 rm(list = ls())
 cat("\n")
 
+require(methods)
+
 # simulation CONSTANTS
 num_cells_1 = 4L
 num_cells_2 = 4L
