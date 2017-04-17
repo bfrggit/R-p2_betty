@@ -38,7 +38,8 @@ objective_multi <<- function(
     verbose = FALSE,
     gamma_x,                # weight of coverage in overall obj
     gamma_u,                # weight of util in overall obj
-    gamma_y                 # weight of number of active nodes in overall obj
+    gamma_y,                # weight of number of active nodes in overall obj
+    t_imp_threshold         # minimum temporal impact to consider in total
 ) {
     # this function, as well as its alternatives, is supposed to be called
     # very often. no type check occurs here. data types should be checked in
@@ -110,17 +111,26 @@ objective_multi <<- function(
         rownames(s_impact_mat_zero) <<- z_nd_str("c", val_m)
         colnames(s_impact_mat_zero) <<- z_nd_str("c", val_m)
         s_impact_mat <<- rep(list(s_impact_mat_zero), val_k)
-        t_impact_mat <<- rep(list(rep(0, duration_frames + 1L)), val_k)
+        t_impact_mat <<- rep(list(1), val_k)
 
         for(knd in 1:val_k) {
             s_impact_mat[[knd]][] <<- do.call(
                 data_type_specs[knd, "s_impact_f"],
                 list(grid_distance_mat)
             )
-            t_impact_mat[[knd]] <<- do.call(
+            t_impact_vec = do.call(
                 data_type_specs[knd, "t_impact_f"],
                 list(time_distance_vec)
             )
+            if(t_impact_vec[1] < t_imp_threshold) {
+                t_impact_vec = t_impact_vec[
+                    (findInterval(
+                        t_imp_threshold,
+                        t_impact_vec
+                    ) + 1L):length(t_impact_vec)
+                ]
+            }
+            t_impact_mat[[knd]] <<- t_impact_vec
         }
     }
 
@@ -142,15 +152,21 @@ objective_multi <<- function(
             # s_imp = matrix(1, nrow = val_m, ncol = val_m)
             # t_imp = rep(1, duration_frames + 1L)
 
+            t_imp_len = min(simu_n + 1L, length(t_imp))
             st_imp_ind_knd = matrix(
                 s_imp[ind, ],
                 nrow = val_m, ncol = 1, byrow = FALSE
             ) %*% matrix(
-                t_imp[(duration_frames - simu_n + 1L):(duration_frames + 1L)],
-                nrow = 1, ncol = simu_n + 1L, byrow = FALSE
+                t_imp[
+                    (length(t_imp) - t_imp_len + 1L):length(t_imp)
+                ], nrow = 1, ncol = t_imp_len, byrow = FALSE
             )
             x_frame_mat[ind, knd] = 1 - prod(
-                1 - x_0_mat_history[, knd, 1L:(simu_n + 1L)] * st_imp_ind_knd
+                1 - x_0_mat_history[
+                    ,
+                    knd,
+                    (simu_n - t_imp_len + 2L):(simu_n + 1L)
+                ] * st_imp_ind_knd
             )
         }
     }
@@ -208,17 +224,27 @@ objective_multi <<- function(
     obj_res # RETURN
 }
 
-get_objective_multi_f <<- function(gamma_x, gamma_u, gamma_y) {
+get_objective_multi_f <<- function(
+    gamma_x,
+    gamma_u,
+    gamma_y,
+    t_imp_threshold = 0
+) {
     stopifnot(is.numeric(gamma_x))
     stopifnot(is.numeric(gamma_u))
     stopifnot(is.numeric(gamma_y))
+
+    stopifnot(is.numeric(t_imp_threshold))
+    stopifnot(t_imp_threshold >= 0)
+    stopifnot(t_imp_threshold <= 1)
 
     function(...) {
         objective_multi(
             ...,
             gamma_x = gamma_x,
             gamma_u = gamma_u,
-            gamma_y = gamma_y
+            gamma_y = gamma_y,
+            t_imp_threshold = t_imp_threshold
         ) # RETURN
     } # RETURN
 }

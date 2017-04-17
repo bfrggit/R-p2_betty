@@ -89,7 +89,7 @@ simulate_beta <<- function(
         ncol = length(objective_acc),
         byrow = TRUE
     )
-    colnames(objective_history) <<- colnames(objective_acc)
+    colnames(objective_history) <<- names(objective_acc)
     rownames(objective_history) <<- z_cl_str("frame", 0L:duration_frames)
     objective_avg_history <<- objective_history
 

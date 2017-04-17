@@ -32,9 +32,11 @@ gamma_x = 1
 gamma_u = 1
 gamma_y = -1
 
+t_imp_threshold = 1e-4
+
 # general simulation SETTINGS
 t_frame = 60L
-duration = 3600L
+duration = 10800L
 lockBinding("t_frame", globalenv())
 lockBinding("duration", globalenv())
 
@@ -112,7 +114,8 @@ source("lib/objective_multi.R")
 get_objective_f = get_objective_multi_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
-    gamma_y = gamma_y
+    gamma_y = gamma_y,
+    t_imp_threshold = t_imp_threshold
 )
 
 # RUN the simulation
