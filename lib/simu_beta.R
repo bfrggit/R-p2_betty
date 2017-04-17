@@ -111,19 +111,19 @@ simulate_beta <<- function(
 
         # check placement
         # simu_n as index should get 1L offset
-        placement_roll = get_placement_f()
-        p_sum = apply(
-            placement_roll,
-            MARGIN = c(1, 3),
-            FUN = sum
-        )[, simu_n + 1L]
-        stopifnot(all(p_sum == 1))
-        p_any = apply(
-            placement_roll[, , simu_n + 1L] == 1,
-            MARGIN = 1,
-            FUN = any
-        )
-        stopifnot(all(p_any))
+        # placement_roll = get_placement_f()
+        # p_sum = apply(
+        #     placement_roll,
+        #     MARGIN = c(1, 3),
+        #     FUN = sum
+        # )[, simu_n + 1L]
+        # stopifnot(all(p_sum == 1))
+        # p_any = apply(
+        #     placement_roll[, , simu_n + 1L] == 1,
+        #     MARGIN = 1,
+        #     FUN = any
+        # )
+        # stopifnot(all(p_any))
 
         # run the algorithm
         # simu_n as index should get 1L offset
