@@ -373,7 +373,7 @@ get_recreate_placement_user_locations_f <<- function(
 
 # compute single node location using its trace in user_locations_list_traces
 get_node_x_y_user_locations <<- function(jnd, simu_t) {
-    if(is.na(user_locations_id_map[jnd])) { # static node
+    if(jnd > user_locations_num_nodes["num_mob"]) { # static node
         return(
             user_locations_static[
                 jnd - user_locations_num_nodes["num_mob"],
