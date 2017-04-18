@@ -2,6 +2,8 @@ rm(list = ls())
 
 load("test_data/batch_user_locations_n.RData")
 
+library(ggplot2)
+
 plot_obj = ggplot(data = data.frame(objective_avg_avg), aes(x = nodes)) +
     xlab("Number of nodes") +
     ylab("Objective value") +
@@ -25,4 +27,21 @@ plot_obj = ggplot(data = data.frame(objective_avg_avg), aes(x = nodes)) +
     )) + scale_fill_manual(values = c(
         "Data generation"   = "#cc0000"
     )) + guides(color = guide_legend(NULL), fill = guide_legend(NULL))
-plot_obj
+ggsave(
+    filename = "test_plot/batch_user_locations_n.png",
+    plot = plot_obj,
+    device = "png",
+    width = 8,
+    height = 5,
+    units = "in",
+    dpi = 300
+)
+ggsave(
+    filename = "test_plot/batch_user_locations_n.pdf",
+    plot = plot_obj,
+    device = "pdf",
+    width = 8,
+    height = 5,
+    units = "in",
+    dpi = 300
+)

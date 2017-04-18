@@ -1,7 +1,9 @@
 # calc_work_fill_0.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+# Updated: 2017-4-17
+#  Author: Charles Zhu
+#
 if(!exists("EX_CALC_WORK_FILL_0_R")) {
     EX_CALC_WORK_FILL_0_R <<- TRUE
 
@@ -13,10 +15,12 @@ calc_work_mat_fill_0 <<- function(
     val_n,
     val_m,
     val_k,
-    grid,
-    data_type_specs,
-    capacity_mat,
-    get_placement_f,
+    grid,                   # unused in this example implementation
+    data_type_specs,        # unused in this example implementation
+    capacity_mat,           # unused in this example implementation
+    get_placement_f,        # unused in this example implementation
+    local_util_f,           # unused in this example implementation
+    data_quota,             # unused in this example implementation
     verbose = FALSE
 ) {
     # this function, as well as its alternatives, is supposed to be called

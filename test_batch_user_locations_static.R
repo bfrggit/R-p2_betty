@@ -18,14 +18,14 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 20L
+num_nodes = 30L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
 lockBinding("num_cells", globalenv())
 lockBinding("num_types", globalenv())
 
-num_static = seq(num_nodes, 0L, by = -2L)
+num_static = seq(num_nodes, 0L, by = -3L)
 lockBinding("num_static", globalenv())
 
 gamma_x = 1

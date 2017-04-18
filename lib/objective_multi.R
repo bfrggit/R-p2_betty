@@ -1,7 +1,8 @@
 # objective_multi.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+#  Author: Charles Zhu
+#
 if(!exists("EX_OBJECTIVE_MULTI_R")) {
     EX_OBJECTIVE_MULTI_R <<- TRUE
 
@@ -172,7 +173,10 @@ objective_multi <<- function(
     }
 
     # compute x_objective
-    x_objective_frame = sum(x_frame_mat) / val_m / val_k
+    # x_objective_frame = sum(x_frame_mat) / val_m / val_k
+    x_objective_frame = sum(
+        colSums(x_frame_mat) * data_type_specs[, "weight"]
+    ) / val_m / sum(data_type_specs[, "weight"])
 
     #-----------------------------------------------------------------------
     # END EVALUATION of coverage
@@ -191,7 +195,10 @@ objective_multi <<- function(
     )
 
     # compute u objective
-    u_objective_frame = sum(u_frame_mat) / val_m / val_k
+    # u_objective_frame = sum(u_frame_mat) / val_m / val_k
+    u_objective_frame = sum(
+        colSums(u_frame_mat) * data_type_specs[, "weight"]
+    ) / val_m / sum(data_type_specs[, "weight"])
 
     # compute y vec of current time frame
     y_frame_vec = apply(

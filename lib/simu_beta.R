@@ -1,7 +1,9 @@
 # simu_beta.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+# Updated: 2017-4-17
+#  Author: Charles Zhu
+#
 if(!exists("EX_SIMU_BETA_R")) {
     EX_SIMU_BETA_R <<- TRUE
 
@@ -25,6 +27,7 @@ simulate_beta <<- function(
     calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
     get_objective_f,        # function to get objective values
     local_util_f,           # function to evaluate local util in each cell
+    data_quota = 0L,        # as constraint, byte / sec
     verbose = FALSE
 ) {
     # CHECK ARGUMENT TYPES
@@ -58,6 +61,10 @@ simulate_beta <<- function(
     stopifnot(is.function(calc_work_mat_f))
     stopifnot(is.function(get_objective_f))
     stopifnot(is.function(local_util_f))
+
+    stopifnot(is.integer(data_quota))
+    stopifnot(length(data_quota) == 1L)
+    stopifnot(data_quota >= 0L)
 
     stopifnot(is.logical(verbose))
 
@@ -137,6 +144,8 @@ simulate_beta <<- function(
             data_type_specs     = data_type_specs,
             capacity_mat        = capacity_mat,
             get_placement_f     = get_placement_f,
+            local_util_f        = local_util_f,
+            data_quota          = data_quota,
             verbose             = verbose
         )
         work_mat_history[, , simu_n + 1L] = work_mat

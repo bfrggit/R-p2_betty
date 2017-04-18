@@ -2,13 +2,15 @@ rm(list = ls())
 
 load("test_data/batch_user_locations_static.RData")
 
+library(ggplot2)
+
 df_list = list()
 for(snd in 1L:dim(objective_avg_avg)[3]) {
     df_list[[snd]] = data.frame(objective_avg_avg[, , snd])
 }
 plot_obj = ggplot(
     data = df_list[[length(df_list)]],
-    aes(x = 20L - static)
+    aes(x = df_list[[1]][1, 1] - static)
 ) +
     xlab("Number of mobile nodes") +
     ylab("Objective value") +
@@ -56,4 +58,21 @@ plot_obj = ggplot(
         fill = guide_legend(NULL),
         size = guide_legend("Temporal impact")
     )
-plot_obj
+ggsave(
+    filename = "test_plot/batch_user_locations_static.png",
+    plot = plot_obj,
+    device = "png",
+    width = 8,
+    height = 5,
+    units = "in",
+    dpi = 300
+)
+ggsave(
+    filename = "test_plot/batch_user_locations_static.pdf",
+    plot = plot_obj,
+    device = "pdf",
+    width = 8,
+    height = 5,
+    units = "in",
+    dpi = 300
+)

@@ -1,7 +1,8 @@
 # square_cell_grid.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+#  Author: Charles Zhu
+#
 if(!exists("EX_SQUARE_CELL_GRID_R")) {
     EX_SQUARE_CELL_GRID_R <<- TRUE
 

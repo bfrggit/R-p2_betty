@@ -1,7 +1,8 @@
 # basic.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+#  Author: Charles Zhu
+#
 if(!exists("EX_BASIC_R")) {
     EX_BASIC_R <<- TRUE
 

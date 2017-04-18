@@ -1,7 +1,8 @@
 # dummy.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+#  Author: Charles Zhu
+#
 if(!exists("EX_DUMMY_R")) {
     EX_DUMMY_R <<- TRUE
 

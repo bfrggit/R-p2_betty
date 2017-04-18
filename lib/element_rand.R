@@ -1,7 +1,9 @@
 # element_rand.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+# Updated: 2017-4-17
+#  Author: Charles Zhu
+#
 if(!exists("EX_ELEMENT_RAND_R")) {
     EX_ELEMENT_RAND_R <<- TRUE
 
@@ -47,6 +49,7 @@ get_data_type_spec_df_rand <<- function(val_k, r_max) {
 
     df_d = data.frame(
         rate = rep(0, val_k),
+        weight = rep(0, val_k),
         s_impact_f = z_nd_str("s_impact_f", val_k),
         t_impact_f = z_nd_str("t_impact_f", val_k),
         row.names = z_nd_str("d", val_k),
@@ -54,7 +57,9 @@ get_data_type_spec_df_rand <<- function(val_k, r_max) {
         fix.empty.names = TRUE,
         stringsAsFactors = FALSE
     )
-    df_d[,"rate"] = runif(val_k, min = 0, max = r_max)
+    df_d[, "rate"] = runif(val_k, min = 0, max = r_max)
+    pr_t = runif(val_k)
+    df_d[, "weight"] = pr_t / sum(pr_t)
 
     df_d # RETURN
 }

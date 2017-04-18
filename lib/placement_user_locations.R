@@ -1,7 +1,8 @@
 # placement_user_locations.R
 #
-# Author: Charles Zhu
-
+# Created: As part of the initial version of the project
+#  Author: Charles Zhu
+#
 if(!exists("EX_PLACEMENT_USER_LOCATIONS_R")) {
     EX_PLACEMENT_USER_LOCATIONS_R <<- TRUE
 
