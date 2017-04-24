@@ -1,6 +1,7 @@
 # objective_multi.R
 #
 # Created: As part of the initial version of the project
+# Updated: 2017-4-23
 #  Author: Charles Zhu
 #
 if(!exists("EX_OBJECTIVE_MULTI_R")) {
@@ -40,7 +41,8 @@ objective_multi <<- function(
     gamma_x,                # weight of coverage in overall obj
     gamma_u,                # weight of util in overall obj
     gamma_y,                # weight of number of active nodes in overall obj
-    t_imp_threshold         # minimum temporal impact to consider in total
+    t_imp_threshold,        # minimum temporal impact to consider in total
+    rich_return             # return a list of multiple obj
 ) {
     # this function, as well as its alternatives, is supposed to be called
     # very often. no type check occurs here. data types should be checked in
@@ -174,9 +176,11 @@ objective_multi <<- function(
 
     # compute x_objective
     # x_objective_frame = sum(x_frame_mat) / val_m / val_k
+
+    x_objective_frame_by_type = colSums(x_frame_mat) / val_m
     x_objective_frame = sum(
-        colSums(x_frame_mat) * data_type_specs[, "weight"]
-    ) / val_m / sum(data_type_specs[, "weight"])
+        x_objective_frame_by_type * data_type_specs[, "weight"]
+    ) / sum(data_type_specs[, "weight"])
 
     #-----------------------------------------------------------------------
     # END EVALUATION of coverage
@@ -196,9 +200,11 @@ objective_multi <<- function(
 
     # compute u objective
     # u_objective_frame = sum(u_frame_mat) / val_m / val_k
+
+    u_objective_frame_by_type = colSums(u_frame_mat) / val_m
     u_objective_frame = sum(
-        colSums(u_frame_mat) * data_type_specs[, "weight"]
-    ) / val_m / sum(data_type_specs[, "weight"])
+        u_objective_frame_by_type * data_type_specs[, "weight"]
+    ) / sum(data_type_specs[, "weight"])
 
     # compute y vec of current time frame
     y_frame_vec = apply(
@@ -228,14 +234,26 @@ objective_multi <<- function(
     obj_res["overall"]  = gamma_x * x_objective_frame +
                           gamma_u * u_objective_frame +
                           gamma_y * y_objective_frame
-    obj_res # RETURN
+
+    # general RETURN
+    if(! rich_return) {
+        return(obj_res) # RETURN
+    }
+
+    # rich RETURN
+    list(
+        general = obj_res,
+        x_by_type = x_objective_frame_by_type,
+        u_by_type = u_objective_frame_by_type
+    ) # RETURN
 }
 
 get_objective_multi_f <<- function(
     gamma_x,
     gamma_u,
     gamma_y,
-    t_imp_threshold = 0
+    t_imp_threshold = 0,
+    rich_return = FALSE
 ) {
     stopifnot(is.numeric(gamma_x))
     stopifnot(is.numeric(gamma_u))
@@ -245,13 +263,17 @@ get_objective_multi_f <<- function(
     stopifnot(t_imp_threshold >= 0)
     stopifnot(t_imp_threshold <= 1)
 
+    stopifnot(is.logical(rich_return))
+    stopifnot(length(rich_return) == 1)
+
     function(...) {
         objective_multi(
             ...,
             gamma_x = gamma_x,
             gamma_u = gamma_u,
             gamma_y = gamma_y,
-            t_imp_threshold = t_imp_threshold
+            t_imp_threshold = t_imp_threshold,
+            rich_return = rich_return
         ) # RETURN
     } # RETURN
 }
