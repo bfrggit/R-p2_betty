@@ -139,8 +139,8 @@ objective_multi <<- function(
 
     # compute x mat of current time frame
     x_frame_mat = matrix(0, nrow = val_m, ncol = val_k)
-    rownames(x_0_frame_mat) = dimnames(x_0_mat_history)[[1]]
-    colnames(x_0_frame_mat) = dimnames(x_0_mat_history)[[2]]
+    rownames(x_frame_mat) = dimnames(x_0_mat_history)[[1]]
+    colnames(x_frame_mat) = dimnames(x_0_mat_history)[[2]]
 
     for(ind in 1L:val_m) {
         for(knd in 1L:val_k) {

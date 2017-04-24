@@ -209,11 +209,11 @@ simulate_gamma <<- function(
     # rich RETURN
     list(
         general_avg = objective_avg,
-        general_dev = apply(objective_history, MARGIN = 1, FUN = sd),
+        general_dev = apply(objective_history, MARGIN = 2, FUN = sd),
         x_by_type_avg = colSums(obj_x_history) / (duration_frames + 1L),
-        x_by_type_dev = apply(obj_x_history, MARGIN = 1, FUN = sd),
+        x_by_type_dev = apply(obj_x_history, MARGIN = 2, FUN = sd),
         u_by_type_avg = colSums(obj_u_history) / (duration_frames + 1L),
-        u_by_type_dev = apply(obj_u_history, MARGIN = 1, FUN = sd)
+        u_by_type_dev = apply(obj_u_history, MARGIN = 2, FUN = sd)
     ) # RETURN
 }
 
