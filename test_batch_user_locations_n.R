@@ -69,7 +69,7 @@ grid = SquareCellGrid(
 source("lib/element_base.R")
 source("lib/element_rand.R")
 
-local_util_f = get_util_f_type("max")
+local_util_f = get_util_f_type("log_sum")
 
 source("lib/placement_user_locations.R")
 
@@ -86,19 +86,37 @@ get_objective_f = get_objective_multi_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
     gamma_y = gamma_y,
-    t_imp_threshold = t_imp_threshold
+    t_imp_threshold = t_imp_threshold,
+    rich_return = TRUE
 )
+
+source("lib/basic.R")
+source("lib/simu_gamma.R")
+
+# PREPARE data structures for simulation results
+objective_general_history = array(
+    0,
+    dim = c(num_rounds, length(objective_zero()), num_loops)
+)
+dimnames(objective_general_history)[[1]] = num_nodes
+dimnames(objective_general_history)[[2]] = names(objective_zero())
+dimnames(objective_general_history)[[3]] = z_nd_str("loop", num_loops)
+
+objective_x_history = array(
+    0,
+    dim = c(num_rounds, num_types, num_loops)
+)
+dimnames(objective_x_history)[[1]] = num_nodes
+dimnames(objective_x_history)[[2]] = z_nd_str("d", num_types)
+dimnames(objective_x_history)[[3]] = z_nd_str("loop", num_loops)
+
+objective_u_history = array(
+    0,
+    dim = c(num_rounds, num_types, num_loops)
+)
+dimnames(objective_u_history) = dimnames(objective_x_history)
 
 # RUN the simulation
-source("lib/simu_beta.R")
-
-objective_avg_sum = matrix(
-    0,
-    nrow = num_rounds,
-    ncol = length(objective_zero()) + 1L,
-    byrow = TRUE
-)
-colnames(objective_avg_sum) = c("nodes", names(objective_zero()))
 for(pnd in 1L:num_loops) {
     # UPDATE simulation elements
     capacity_mat = get_capacity_mat_rand(
@@ -124,13 +142,6 @@ for(pnd in 1L:num_loops) {
     )
 
     # SIMULATION
-    objective_avg = matrix(
-        0,
-        nrow = num_rounds,
-        ncol = length(objective_zero()) + 1L,
-        byrow = TRUE
-    )
-    colnames(objective_avg) = colnames(objective_avg_sum)
     for(rnd in 1L:num_rounds) {
         create_placement_f = get_recreate_placement_user_locations_f(
             num_static = num_static[rnd]
@@ -142,8 +153,7 @@ for(pnd in 1L:num_loops) {
             sprintf("num_nodes = %d", num_nodes[rnd]),
             "\n"
         )
-        objective_avg[rnd, 1L] = num_nodes[rnd]
-        objective_avg[rnd, 2L:6L] = simulate_beta(
+        objective_list = simulate_gamma(
             t_frame                 = t_frame,
             duration                = duration,
             val_n                   = num_nodes[rnd],
@@ -160,16 +170,53 @@ for(pnd in 1L:num_loops) {
             local_util_f            = local_util_f,
             verbose                 = FALSE
         )
+        objective_general_history[rnd, , pnd] = objective_list$general_avg
+        objective_x_history[rnd, , pnd] = objective_list$x_by_type_avg
+        objective_u_history[rnd, , pnd] = objective_list$u_by_type_avg
     }
-    objective_avg_sum = objective_avg_sum + objective_avg
 }
-objective_avg_avg = objective_avg_sum / num_loops
+
+objective_general_avg = apply(
+    objective_general_history,
+    MARGIN = c(1, 2),
+    FUN = mean
+)
+objective_general_dev = apply(
+    objective_general_history,
+    MARGIN = c(1, 2),
+    FUN = sd
+)
+objective_x_avg = apply(
+    objective_x_history,
+    MARGIN = c(1, 2),
+    FUN = mean
+)
+objective_x_dev = apply(
+    objective_x_history,
+    MARGIN = c(1, 2),
+    FUN = sd
+)
+objective_u_avg = apply(
+    objective_u_history,
+    MARGIN = c(1, 2),
+    FUN = mean
+)
+objective_u_dev = apply(
+    objective_u_history,
+    MARGIN = c(1, 2),
+    FUN = sd
+)
 
 cat("\n")
 cat("Objective(s)","\n")
-print(round(objective_avg_avg, 4))
+print(list(
+    general_avg = round(objective_general_avg, 4),
+    general_dev = round(objective_general_dev, 4)
+))
 save(
-    objective_avg_sum, objective_avg_avg,
+    objective_general_history, objective_x_history, objective_u_history,
+    objective_general_avg, objective_x_avg, objective_u_avg,
+    objective_general_dev, objective_x_dev, objective_u_dev,
     num_cells_1, num_cells_2,
     cell_len_x, cell_len_y,
     num_offset_1, num_offset_2,
