@@ -79,7 +79,7 @@ objective_multi <<- function(
     # BEGIN EVALUATION of coverage
 
     # create x mat to keep history values for faster future calc
-    if(simu_n <= 0) { # creation is done only once
+    if(simu_n <= 0L) { # creation is done only once
         x_0_mat_history <<- array(
             0,
             dim = c(val_m, val_k, duration_frames + 1L)
@@ -107,7 +107,7 @@ objective_multi <<- function(
     x_0_mat_history[, , simu_n + 1L] <<- x_0_frame_mat
 
     # evaluate impact func for all cell/time combinations
-    if(simu_n <=0) { # evaluation is done only once
+    if(simu_n <= 0L) { # evaluation is done only once
         grid_distance_mat <<- cell_dist_mat(grid)
         time_distance_vec <<- duration_frames:0L
         s_impact_mat_zero <<- matrix(0, nrow = val_m, ncol = val_m)
@@ -116,7 +116,7 @@ objective_multi <<- function(
         s_impact_mat <<- rep(list(s_impact_mat_zero), val_k)
         t_impact_mat <<- rep(list(1), val_k)
 
-        for(knd in 1:val_k) {
+        for(knd in 1L:val_k) {
             s_impact_mat[[knd]][] <<- do.call(
                 data_type_specs[knd, "s_impact_f"],
                 list(grid_distance_mat)
@@ -158,11 +158,11 @@ objective_multi <<- function(
             t_imp_len = min(simu_n + 1L, length(t_imp))
             st_imp_ind_knd = matrix(
                 s_imp[ind, ],
-                nrow = val_m, ncol = 1, byrow = FALSE
+                nrow = val_m, ncol = 1L, byrow = FALSE
             ) %*% matrix(
                 t_imp[
                     (length(t_imp) - t_imp_len + 1L):length(t_imp)
-                ], nrow = 1, ncol = t_imp_len, byrow = FALSE
+                ], nrow = 1L, ncol = t_imp_len, byrow = FALSE
             )
             x_frame_mat[ind, knd] = 1 - prod(
                 1 - x_0_mat_history[
@@ -264,7 +264,7 @@ get_objective_multi_f <<- function(
     stopifnot(t_imp_threshold <= 1)
 
     stopifnot(is.logical(rich_return))
-    stopifnot(length(rich_return) == 1)
+    stopifnot(length(rich_return) == 1L)
 
     function(...) {
         objective_multi(

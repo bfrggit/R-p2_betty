@@ -1,0 +1,257 @@
+# simu_gamma.R
+#
+# Created: 2017-4-23
+#  Author: Charles Zhu
+#
+if(!exists("EX_SIMU_GAMMA_R")) {
+    EX_SIMU_GAMMA_R <<- TRUE
+    EX_SIMU_BETA_R <<- TRUE     # simu_gamma overrides simu_beta
+
+    source("lib/basic.R")
+    source("lib/objective_multi.R")
+
+# PRIMARY SIMULATION function
+# handle loops for a complete simulation
+# get_objective_f should have a matching config of rich_return
+simulate_gamma <<- function(
+    t_frame,                # time frame length, sec
+    duration,               # total length of simulation in simulated time, sec
+    val_n,
+    val_m,
+    val_k,
+    grid,                   # grid specs
+    data_type_specs,        # data type specs data frame
+    capacity_mat,           # sensing capacity matrix
+    create_placement_f,     # function to create node placement or load file
+    update_placement_f,     # function to update node placement
+    get_placement_f,        # function to get placement matrix
+    calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
+    get_objective_f,        # function to get objective values
+    local_util_f,           # function to evaluate local util in each cell
+    data_quota = 0L,        # as constraint, byte / sec
+    verbose = FALSE,
+    rich_return = TRUE      # return a list of multiple obj
+) {
+    # CHECK ARGUMENT TYPES
+    stopifnot(is.integer(t_frame))
+    stopifnot(is.integer(duration))
+    stopifnot(length(t_frame) == 1L)
+    stopifnot(length(duration) == 1L)
+    stopifnot(t_frame > 0L)
+    stopifnot(duration > 0L)
+
+    stopifnot(is.integer(val_n))
+    stopifnot(is.integer(val_m))
+    stopifnot(is.integer(val_k))
+    stopifnot(length(val_n) == 1L)
+    stopifnot(length(val_m) == 1L)
+    stopifnot(length(val_k) == 1L)
+    stopifnot(val_n > 0L)
+    stopifnot(val_m > 0L)
+    stopifnot(val_k > 0L)
+
+    stopifnot(is.data.frame(data_type_specs))
+    stopifnot(nrow(data_type_specs) == val_k)
+
+    stopifnot(is.matrix(capacity_mat))
+    stopifnot(nrow(capacity_mat) == val_n)
+    stopifnot(ncol(capacity_mat) == val_k)
+
+    stopifnot(is.function(create_placement_f))
+    stopifnot(is.function(update_placement_f))
+    stopifnot(is.function(get_placement_f))
+    stopifnot(is.function(calc_work_mat_f))
+    stopifnot(is.function(get_objective_f))
+    stopifnot(is.function(local_util_f))
+
+    stopifnot(is.integer(data_quota))
+    stopifnot(length(data_quota) == 1L)
+    stopifnot(data_quota >= 0L)
+
+    stopifnot(is.logical(verbose))
+
+    stopifnot(is.logical(rich_return))
+    stopifnot(length(rich_return) == 1L)
+
+    # CREATE placement objects and INIT them if necessary
+    create_placement_f(
+        t_frame = t_frame,
+        duration = duration,
+        val_n = val_n,
+        val_m = val_m,
+        val_k = val_k
+    )
+
+    # PREPARE variables for operation history
+    duration_frames = duration %/% t_frame
+    stopifnot(is.integer(duration_frames))
+
+    work_mat_history = array(
+        0,
+        dim = c(val_n, val_k, duration_frames + 1L)
+    )
+    dimnames(work_mat_history)[[1]] = z_nd_str("n", val_n)
+    dimnames(work_mat_history)[[2]] = z_nd_str("d", val_k)
+    dimnames(work_mat_history)[[3]] = z_cl_str("frame", 0L:duration_frames)
+
+    objective_acc = objective_zero()
+    objective_history <<- matrix(
+        objective_acc,
+        nrow = duration_frames + 1L,
+        ncol = length(objective_acc),
+        byrow = TRUE
+    )
+    colnames(objective_history) <<- names(objective_acc)
+    rownames(objective_history) <<- z_cl_str("frame", 0L:duration_frames)
+    objective_avg_history <<- objective_history
+
+    # MAIN LOOP
+    for(simu_n in 0L:duration_frames) {
+        simu_t = simu_n * t_frame
+        if(verbose) {
+            cat(
+                "Simulation",
+                sprintf("frame = %d of %d,", simu_n, duration_frames),
+                sprintf("time = %d", simu_t),
+                "\n"
+            )
+        }
+        update_placement_f(
+            t_frame = t_frame,
+            simu_n = simu_n
+        )
+
+        # check placement
+        # simu_n as index should get 1L offset
+        placement_roll = get_placement_f()
+        # p_sum = apply(
+        #     placement_roll,
+        #     MARGIN = c(1, 3),
+        #     FUN = sum
+        # )[, simu_n + 1L]
+        p_sum = rowSums(placement_roll[, , simu_n + 1L])
+        stopifnot(all(p_sum == 1))
+
+        # run the algorithm
+        # simu_n as index should get 1L offset
+        work_mat = calc_work_mat_f(
+            t_frame             = t_frame,
+            simu_n              = simu_n,
+            val_n               = val_n,
+            val_m               = val_m,
+            val_k               = val_k,
+            grid                = grid,
+            data_type_specs     = data_type_specs,
+            capacity_mat        = capacity_mat,
+            get_placement_f     = get_placement_f,
+            local_util_f        = local_util_f,
+            data_quota          = data_quota,
+            verbose             = verbose
+        )
+        work_mat_history[, , simu_n + 1L] = work_mat
+
+        # calculate objective function values and keep track of them
+        # could be slow if not designed carefully
+        objective_result = get_objective_f(
+            t_frame             = t_frame,
+            simu_n              = simu_n,
+            val_n               = val_n,
+            val_m               = val_m,
+            val_k               = val_k,
+            grid                = grid,
+            data_type_specs     = data_type_specs,
+            capacity_mat        = capacity_mat,
+            get_placement_f     = get_placement_f,
+            local_util_f        = local_util_f,
+            work_mat_history    = work_mat_history,
+            verbose             = verbose
+        )
+        if(rich_return) {
+            if(simu_n <= 0L) {
+                stopifnot(is.list(objective_result))
+
+                obj_x_history <<- matrix(
+                    0,
+                    ncol = length(objective_result$x_by_type),
+                    nrow = nrow(objective_history)
+                )
+                colnames(obj_x_history) <<- names(objective_result$x_by_type)
+                rownames(obj_x_history) <<- rownames(objective_history)
+                obj_u_history <<- matrix(
+                    0,
+                    ncol = length(objective_result$u_by_type),
+                    nrow = nrow(objective_history)
+                )
+                colnames(obj_u_history) <<- names(objective_result$u_by_type)
+                rownames(obj_u_history) <<- rownames(objective_history)
+            }
+            objective_frame = objective_result$general
+            obj_x_history[simu_n + 1L, ] <<- objective_result$x_by_type
+            obj_u_history[simu_n + 1L, ] <<- objective_result$u_by_type
+        } else {
+            if(simu_n <= 0L) {
+                stopifnot(is.numeric(objective_result))
+            }
+            objective_frame = objective_result
+        }
+        objective_history[simu_n + 1L, ] <<- objective_frame
+        objective_acc = objective_acc + objective_frame
+        objective_avg = objective_acc / (simu_n + 1L)
+        objective_avg_history[simu_n + 1L, ] <<- objective_avg
+    }
+    objective_avg = colSums(objective_history) / (duration_frames + 1L)
+
+    # general RETURN
+    if(! rich_return) {
+        return(objective_avg) # RETURN
+    }
+
+    # rich RETURN
+    list(
+        general_avg = objective_avg,
+        general_dev = apply(objective_history, MARGIN = 1, FUN = sd),
+        x_by_type_avg = colSums(obj_x_history) / (duration_frames + 1L),
+        x_by_type_dev = apply(obj_x_history, MARGIN = 1, FUN = sd),
+        u_by_type_avg = colSums(obj_u_history) / (duration_frames + 1L),
+        u_by_type_dev = apply(obj_u_history, MARGIN = 1, FUN = sd)
+    ) # RETURN
+}
+
+# for backward compatibility
+simulate_beta <<- function(
+    t_frame,                # time frame length, sec
+    duration,               # total length of simulation in simulated time, sec
+    val_n,
+    val_m,
+    val_k,
+    grid,                   # grid specs
+    data_type_specs,        # data type specs data frame
+    capacity_mat,           # sensing capacity matrix
+    create_placement_f,     # function to create node placement or load file
+    update_placement_f,     # function to update node placement
+    get_placement_f,        # function to get placement matrix
+    calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
+    get_objective_f,        # function to get objective values
+    local_util_f,           # function to evaluate local util in each cell
+    data_quota = 0L,        # as constraint, byte / sec
+    verbose = FALSE
+) {
+    simulate_gamma(
+        t_frame = t_frame, duration = duration,
+        val_n = val_n, val_m = val_m, val_k = val_k,
+        grid = grid,
+        data_type_specs = data_type_specs,
+        capacity_mat = capacity_mat,
+        create_placement_f = create_placement_f,
+        update_placement_f = update_placement_f,
+        get_placement_f = get_placement_f,
+        calc_work_mat_f = calc_work_mat_f,
+        get_objective_f = get_objective_f,
+        local_util_f = local_util_f,
+        data_quota = data_quota,
+        verbose = verbose,
+        rich_return = FALSE
+    ) # RETURN
+}
+
+} # ENDIF
