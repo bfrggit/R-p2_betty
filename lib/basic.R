@@ -86,6 +86,20 @@ proto_util_max <<- function(vec) {
     max(vec)
 }
 
+# PROTOTYPE of SUM util functions
+proto_util_sum <<- function(vec) {
+    stopifnot(is.numeric(vec))
+
+    sum(vec)
+}
+
+# PROTOTYPE of LOG of sum util functions
+proto_util_log_sum <<- function(vec) {
+    stopifnot(is.numeric(vec))
+
+    log(sum(vec) + 1)
+}
+
 # general GETTER of util functions
 get_util_f_type <<- function(type, ...) {
     stopifnot(is.character(type))
