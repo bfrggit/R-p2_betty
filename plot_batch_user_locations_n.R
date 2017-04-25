@@ -6,7 +6,7 @@ library(ggplot2)
 library(reshape2)
 
 num_loops = 5L
-line_cols = c("nodes", "overall", "cover", "util", "nact")
+line_cols = c("nodes", "nact", "cover", "util", "overall")
 df = data.frame(objective_general_avg)
 df_se = data.frame(objective_general_dev) * qnorm(0.975) / sqrt(num_loops)
 df$nodes = df_se$nodes = as.integer(rownames(objective_general_avg))
@@ -20,7 +20,9 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     geom_area(
         data = df,
         aes(y = traffic / 40000, fill = "traffic"),
-    alpha = 0.3) + geom_errorbar(
+    alpha = 0.3) + geom_line(
+        aes(y = value, color = series), size = 1
+    ) + geom_errorbar(
         aes(
             ymin = value - se,
             ymax = value + se,
@@ -28,8 +30,6 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
         ), size = 0.5
     ) + geom_point(
         aes(y = value, color = series, shape = series), size = 2
-    ) + geom_line(
-        aes(y = value, color = series), size = 1
     ) + scale_y_continuous(
         sec.axis = sec_axis(
             ~ . * 40000,
