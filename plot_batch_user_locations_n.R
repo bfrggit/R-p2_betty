@@ -3,81 +3,73 @@ rm(list = ls())
 load("test_data/batch_user_locations_n.RData")
 
 library(ggplot2)
+library(reshape2)
 
 num_loops = 5L
+line_cols = c("nodes", "overall", "cover", "util", "nact")
 df = data.frame(objective_general_avg)
-df_sd = data.frame(objective_general_dev)
-df$nodes = as.integer(rownames(objective_general_avg))
-df$overall_se = df_sd$overall * qnorm(0.975) / sqrt(num_loops)
-df$cover_se = df_sd$cover * qnorm(0.975) / sqrt(num_loops)
-df$util_se = df_sd$util * qnorm(0.975) / sqrt(num_loops)
-df$nact_se = df_sd$nact * qnorm(0.975) / sqrt(num_loops)
-plot_obj = ggplot(data = df, aes(x = nodes)) +
+df_se = data.frame(objective_general_dev) * qnorm(0.975) / sqrt(num_loops)
+df$nodes = df_se$nodes = as.integer(rownames(objective_general_avg))
+dm = melt(df[, line_cols], id.vars = "nodes", variable.name = "series")
+dm_se = melt(df_se[, line_cols], id.vars = "nodes", variable.name = "series")
+dm$se = dm_se$value
+plot_obj = ggplot(data = dm, aes(x = nodes)) +
     xlab("Number of nodes") +
     ylab("Objectives") +
-    geom_area(aes(y = traffic / 40000, fill = "traffic"), alpha = 0.3) +
-    geom_errorbar(aes(
-        ymin = nact - nact_se,
-        ymax = nact + nact_se,
-        color = "8_nact"
-    ), size = 0.5) + geom_line(aes(y = nact, color = "8_nact"), size = 1) +
-    geom_point(aes(y = nact, color = "8_nact", shape = "8_nact"), size = 2) +
-    geom_errorbar(aes(
-        ymin = util - util_se,
-        ymax = util + util_se,
-        color = "6_util"
-    ), size = 0.5) + geom_line(aes(y = util, color = "6_util"), size = 1) +
-    geom_point(aes(y = util, color = "6_util", shape = "6_util"), size = 2) +
-    geom_errorbar(aes(
-        ymin = cover - cover_se,
-        ymax = cover + cover_se,
-        color = "4_cover"
-    ), size = 0.5) + geom_line(aes(y = cover, color = "4_cover"), size = 1) +
-    geom_point(aes(y = cover, color = "4_cover", shape = "4_cover"), size = 2) +
-    geom_errorbar(aes(
-        ymin = overall - overall_se,
-        ymax = overall + overall_se,
-        color = "2_all"
-    ), size = 0.5) + geom_line(aes(y = overall, color = "2_all"), size = 1) +
-    geom_point(aes(y = overall, color = "2_all", shape = "2_all"), size = 2) +
-    scale_y_continuous(
+    expand_limits(y = 0) +
+    geom_area(
+        data = df,
+        aes(y = traffic / 40000, fill = "traffic"),
+    alpha = 0.3) + geom_errorbar(
+        aes(
+            ymin = value - se,
+            ymax = value + se,
+            color = series
+        ), size = 0.5
+    ) + geom_point(
+        aes(y = value, color = series, shape = series), size = 2
+    ) + geom_line(
+        aes(y = value, color = series), size = 1
+    ) + scale_y_continuous(
         sec.axis = sec_axis(
             ~ . * 40000,
             name = "Data generation rate (byte / sec)"
         )
-    ) +
-    scale_color_manual(
+    ) + scale_color_manual(
         name = "Objectives",
         labels = c(
-            "2_all"     = "Overall",
-            "4_cover"   = "Coverage",
-            "6_util"    = "Utility",
-            "8_nact"    = "Active nodes"
+            "overall"   = "Overall",
+            "cover"     = "Coverage",
+            "util"      = "Utility",
+            "nact"      = "Active nodes"
         ), values = c(
-            "2_all"     = "#333333",
-            "4_cover"   = "#003399",
-            "6_util"    = "#330099",
-            "8_nact"    = "#993300"
+            "overall"   = "gray15",
+            "cover"     = "dodgerblue4",
+            "util"      = "purple4",
+            "nact"      = "orangered3"
         )
     ) + scale_fill_manual(
         name = NULL,
         labels = c(
             "traffic"   = "Data generation"
-        ), values = c("#cc3333")
+        ), values = c(
+            "traffic"   = "indianred"
+        )
     ) + scale_shape_manual(
         name = "Objectives",
         labels = c(
-            "2_all"     = "Overall",
-            "4_cover"   = "Coverage",
-            "6_util"    = "Utility",
-            "8_nact"    = "Active nodes"
+            "overall"   = "Overall",
+            "cover"     = "Coverage",
+            "util"      = "Utility",
+            "nact"      = "Active nodes"
         ), values = c(
-            "2_all"     = 16,
-            "4_cover"   = 15,
-            "6_util"    = 17,
-            "8_nact"    = 18
+            "overall"   = 16,
+            "cover"     = 15,
+            "util"      = 17,
+            "nact"      = 18
         )
     )
+# plot_obj
 ggsave(
     filename = "test_plot/batch_user_locations_n.png",
     plot = plot_obj,
