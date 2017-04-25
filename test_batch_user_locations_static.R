@@ -87,22 +87,43 @@ get_objective_f = get_objective_multi_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
     gamma_y = gamma_y,
-    t_imp_threshold = t_imp_threshold
+    t_imp_threshold = t_imp_threshold,
+    rich_return = TRUE
 )
 
-# RUN the simulation
-source("lib/simu_beta.R")
+# PREPARE data structures for simulation results
+source("lib/simu_gamma.R")
 
-objective_avg_sum = array(
+objective_general_history = array(
     0,
     dim = c(
         num_rounds,
-        length(objective_zero()) + 1L,
-        length(t_impact_steps)
+        length(objective_zero()),
+        length(t_impact_steps),
+        num_loops
     )
 )
-dimnames(objective_avg_sum)[[2]] = c("static", names(objective_zero()))
-dimnames(objective_avg_sum)[[3]] = t_impact_steps
+dimnames(objective_general_history)[[1]] = num_static
+dimnames(objective_general_history)[[2]] = names(objective_zero())
+dimnames(objective_general_history)[[3]] = t_impact_steps
+dimnames(objective_general_history)[[4]] = z_nd_str("loop", num_loops)
+
+objective_x_history = objective_u_history = array(
+    0,
+    dim = c(
+        num_rounds,
+        num_types,
+        length(t_impact_steps),
+        num_loops
+    )
+)
+dimnames(objective_x_history)[[1]] = num_static
+dimnames(objective_x_history)[[2]] = z_nd_str("d", num_types)
+dimnames(objective_x_history)[[3]] = t_impact_steps
+dimnames(objective_x_history)[[4]] = z_nd_str("loop", num_loops)
+dimnames(objective_u_history) = dimnames(objective_x_history)
+
+# RUN the simulation
 for(pnd in 1L:num_loops) {
     # UPDATE simulation elements
     capacity_mat = get_capacity_mat_rand(
@@ -127,15 +148,15 @@ for(pnd in 1L:num_loops) {
     )
 
     # SIMULATION
-    objective_avg = array(
-        0,
-        dim = c(
-            num_rounds,
-            length(objective_zero()) + 1L,
-            length(t_impact_steps)
-        )
-    )
-    dimnames(objective_avg) = dimnames(objective_avg_sum)
+    # objective_avg = array(
+    #     0,
+    #     dim = c(
+    #         num_rounds,
+    #         length(objective_zero()) + 1L,
+    #         length(t_impact_steps)
+    #     )
+    # )
+    # dimnames(objective_avg) = dimnames(objective_avg_sum)
 
     for(snd in 1L:length(t_impact_steps)) {
         make_t_impact_f_type(
@@ -156,8 +177,7 @@ for(pnd in 1L:num_loops) {
                 sprintf("num_static = %d", num_static[rnd]),
                 "\n"
             )
-            objective_avg[rnd, 1L, snd] = num_static[rnd]
-            objective_avg[rnd, 2L:6L, snd] = simulate_beta(
+            objective_list = simulate_gamma(
                 t_frame                 = t_frame,
                 duration                = duration,
                 val_n                   = num_nodes,
@@ -174,21 +194,60 @@ for(pnd in 1L:num_loops) {
                 local_util_f            = local_util_f,
                 verbose                 = FALSE
             )
+            objective_general_history[rnd, , snd, pnd] =
+                                                   objective_list$general_avg
+            objective_x_history[rnd, , snd, pnd] = objective_list$x_by_type_avg
+            objective_u_history[rnd, , snd, pnd] = objective_list$u_by_type_avg
         }
     }
-    objective_avg_sum = objective_avg_sum + objective_avg
 }
-objective_avg_avg = objective_avg_sum / num_loops
+
+objective_general_avg = apply(
+    objective_general_history,
+    MARGIN = c(1, 2, 3),
+    FUN = mean
+)
+objective_general_dev = apply(
+    objective_general_history,
+    MARGIN = c(1, 2, 3),
+    FUN = sd
+)
+objective_x_avg = apply(
+    objective_x_history,
+    MARGIN = c(1, 2, 3),
+    FUN = mean
+)
+objective_x_dev = apply(
+    objective_x_history,
+    MARGIN = c(1, 2, 3),
+    FUN = sd
+)
+objective_u_avg = apply(
+    objective_u_history,
+    MARGIN = c(1, 2, 3),
+    FUN = mean
+)
+objective_u_dev = apply(
+    objective_u_history,
+    MARGIN = c(1, 2, 3),
+    FUN = sd
+)
 
 cat("\n")
 cat("Objective(s)","\n")
-print(round(objective_avg_avg, 4))
+print(list(
+    general_avg = round(objective_general_avg[, , "5"], 4),
+    general_dev = round(objective_general_dev[, , "5"], 4)
+))
 save(
-    objective_avg_sum, objective_avg_avg,
+    objective_general_history, objective_x_history, objective_u_history,
+    objective_general_avg, objective_x_avg, objective_u_avg,
+    objective_general_dev, objective_x_dev, objective_u_dev,
     num_cells_1, num_cells_2,
     cell_len_x, cell_len_y,
     num_offset_1, num_offset_2,
     num_nodes, num_cells, num_types, num_static,
+    t_impact_steps,
     gamma_x, gamma_u, gamma_y,
     t_frame, duration,
     capacity_p, rate_max,
