@@ -70,7 +70,7 @@ grid = SquareCellGrid(
 source("lib/element_base.R")
 source("lib/element_rand.R")
 
-local_util_f = get_util_f_type("max")
+local_util_f = get_util_f_type("log_sum")
 
 source("lib/placement_user_locations.R")
 
