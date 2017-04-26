@@ -20,7 +20,8 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     geom_area(
         data = df,
         aes(y = traffic / 40000, fill = "traffic"),
-    alpha = 0.3) + geom_line(
+        alpha = 0.3
+    ) + geom_line(
         aes(y = value, color = series), size = 1
     ) + geom_errorbar(
         aes(
