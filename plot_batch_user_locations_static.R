@@ -57,7 +57,7 @@ plot_obj = ggplot(
             ymin = value - se,
             ymax = value + se,
             color = series
-        ), size = 0.5, width = 0.5
+        ), size = 0.5, width = 1
     ) + geom_point(
         aes(y = value, color = series, shape = series), size = 2
     ) + scale_y_continuous(
@@ -114,7 +114,7 @@ plot_obj = ggplot(
             "X20"       = 1.0
         )
     )
-plot_obj
+# plot_obj
 # ggsave(
 #     filename = "test_plot/batch_user_locations_static.png",
 #     plot = plot_obj,
@@ -124,12 +124,12 @@ plot_obj
 #     units = "in",
 #     dpi = 300
 # )
-# ggsave(
-#     filename = "test_plot/batch_user_locations_static.pdf",
-#     plot = plot_obj,
-#     device = "pdf",
-#     width = 8,
-#     height = 5,
-#     units = "in",
-#     dpi = 300
-# )
+ggsave(
+    filename = "test_plot/batch_user_locations_static.pdf",
+    plot = plot_obj,
+    device = "pdf",
+    width = 8,
+    height = 5,
+    units = "in",
+    dpi = 300
+)
