@@ -29,7 +29,7 @@ plot_obj = ggplot(
     aes(x = mob)
 ) +
     xlab("Number of mobile nodes") +
-    ylab("Objective value") +
+    ylab("Objectives") +
     geom_area(
         data = df,
         aes(y = traffic / 10000, fill = "traffic"),
