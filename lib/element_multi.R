@@ -9,25 +9,27 @@ if(!exists("EX_ELEMENT_MULTI_R")) {
     source("lib/basic.R")
 
 data_rate_multi_0_by_type = c(  # data rate of several data types, byte / sample
-    gas     = 50,               # estimation for JSON text, byte / sample
-    audio   = 44100,            # at 22050 Hz, 16 bit, 1 channel, byte / sec
-    bmp_1   = 15116544,         # at 2592x1944, 24 bit, byte / sample
-    bmp_2   = 24245760,         # at 3280x2464, 24 bit, byte / sample
-    jpg_1   = 10354832,         # estimation for photos, 5 MP, byte / sample
-    jpg_2   = 16608345,         # estimation for photos, 8 MP, byte / sample
-    wifi    = 1600              # at 80 byte per AP, 20 APs, byte / sample
+    gas     = 200,              # experimental data, JSON text, byte / sample
+    audio   = 800000,           # experimental data, WAV, byte / sample (8 sec)
+    # bmp_1   = 15116544,       # at 2592x1944, 24 bit, byte / sample
+    # bmp_2   = 24245760,       # at 3280x2464, 24 bit, byte / sample
+    # jpg_1   = 10354832,       # estimation for photos, 5 MP, byte / sample
+    # jpg_2   = 16608345,       # estimation for photos, 8 MP, byte / sample
+    jpg     = 180000,           # experimental data, at 720x480, byte / sample
+    wifi    = 3600              # at 180 byte per AP, 20 APs, byte / sample
 )
 # JPEG compression ratio for photos (ref)
 #   0.315 at quality = 70
 #   http://stackoverflow.com/questions/3471663/jpeg-compression-ratio
 
 data_rate_multi_by_type = data_rate_multi_0_by_type / c( # sec / sample
-    gas     = 1,
-    audio   = 6,                # 60 / this_value = length_of_sample / min
-    bmp_1   = 20,
-    bmp_2   = 20,
-    jpg_1   = 20,
-    jpg_2   = 20,
+    gas     = 5,
+    audio   = 7.5,              # 60 / this_value = length_of_sample / min
+    # bmp_1   = 20,
+    # bmp_2   = 20,
+    # jpg_1   = 20,
+    # jpg_2   = 20,
+    jpg     = 20,
     wifi    = 4
 ) # order of types MUST MATCH with original rates
 
@@ -97,12 +99,16 @@ get_capacity_mat_multi <<- function(
 
     stopifnot(is.numeric(p_audio_mob))
     stopifnot(is.numeric(p_photo_mob))
+    stopifnot(is.numeric(p_photo_static))
     stopifnot(length(p_audio_mob) == val_k_audio)
     stopifnot(length(p_photo_mob) == val_k_photo)
-    stopifnot(p_audio_mob > 0)
+    stopifnot(length(p_photo_static) == val_k_photo)
+    stopifnot(p_audio_mob >= 0)
     stopifnot(p_audio_mob <= 1)
-    stopifnot(p_photo_mob > 0)
+    stopifnot(p_photo_mob >= 0)
     stopifnot(p_photo_mob <= 1)
+    stopifnot(p_photo_static >= 0)
+    stopifnot(p_photo_static <= 1)
 
     mat_c = matrix(
         0,
@@ -189,7 +195,7 @@ get_data_type_spec_df_multi <<- function(
         rate = c(
             rep(data_rate_multi_by_type["gas"], val_k_gas),
             rep(data_rate_multi_by_type["audio"], val_k_audio),
-            rep(data_rate_multi_by_type["jpg_2"], val_k_photo),
+            rep(data_rate_multi_by_type["jpg"], val_k_photo),
             rep(data_rate_multi_by_type["wifi"], val_k_wifi)
         ),
         weight = weight_original / sum(weight_original),
