@@ -1,6 +1,7 @@
 # basic.R
 #
 # Created: As part of the initial version of the project
+# Updated: 2017-4-30
 #  Author: Charles Zhu
 #
 if(!exists("EX_BASIC_R")) {

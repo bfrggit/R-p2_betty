@@ -1,6 +1,7 @@
 # element_base.R
 #
 # Created: As part of the initial version of the project
+# Updated: 2017-4-30
 #  Author: Charles Zhu
 #
 if(!exists("EX_ELEMENT_BASE_R")) {

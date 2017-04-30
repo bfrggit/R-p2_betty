@@ -1,6 +1,7 @@
 # element_multi.R
 #
 # Created: 2017-4-23
+# Updated: 2017-4-30
 #  Author: Charles Zhu
 #
 if(!exists("EX_ELEMENT_MULTI_R")) {
