@@ -53,26 +53,26 @@ lockBinding("val_k_wifi", globalenv())
 num_gas_mob = 4L
 lockBinding("num_gas_mob", globalenv())
 
-p_audio_mob = c(audio_1 = 0.4)
-p_photo_mob = c(photo_1 = 0.6, photo_2 = 0.4)
-p_photo_static = c(photo_1 = 0, photo_2 = 0.8)
+p_audio_mob = c(audio_1 = 0.6)
+p_photo_mob = c(photo_1 = 0.9, photo_2 = 0.3)
+p_photo_static = c(photo_1 = 0, photo_2 = 0.7)
 lockBinding("p_audio_mob", globalenv())
 lockBinding("p_photo_mob", globalenv())
 lockBinding("p_photo_static", globalenv())
 
 weight_types = c(
     c(      # gas
-        7,
-        7,
-        6,
+        8,
         5,
         5,
-        4
+        4,
+        4,
+        3
     ), c(   # audio
         5
     ), c(   # photo
         7,
-        5
+        6
     ), c(   # wifi
         3
     )
@@ -132,7 +132,7 @@ data_type_spec_df = get_data_type_spec_df_multi(
 #     step = 5
 # )
 make_s_impact_f_type_vec(kcl = col_type_lt[1]:col_type_rt[1],
-    type = "step", step = 750
+    type = "step", step = 550
 )
 make_s_impact_f_type_vec(kcl = col_type_lt[2]:col_type_rt[2],
     type = "step", step = 100
@@ -141,7 +141,7 @@ make_s_impact_f_type_vec(kcl = col_type_lt[3],
     type = "step", step = 10
 )
 make_s_impact_f_type_vec(kcl = col_type_lt[3] + 1L,
-    type = "step", step = 1050
+    type = "step", step = 750
 )
 make_s_impact_f_type_vec(kcl = col_type_lt[4]:col_type_rt[4],
     type = "step", step = 20
