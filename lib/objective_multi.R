@@ -207,6 +207,10 @@ omg_y_vec <<- function(work_mat_frame) {
     ) # RETURN
 }
 
+omg_d_vec <<- function(data_type_specs, work_mat_frame) {
+    colSums(work_mat_frame) * data_type_spec_df[, "rate"] # RETURN
+}
+
 # MAIN objective func used in simulations
 objective_multi <<- function(
     t_frame,                # time frame length, sec
@@ -293,8 +297,7 @@ objective_multi <<- function(
     y_objective_frame = sum(y_frame_vec) / val_m / val_k
 
     # EVALUATION of traffic
-    d_frame_vec = colSums(work_mat_history[, , simu_n + 1L]) *
-                  data_type_spec_df[, "rate"]
+    d_frame_vec = omg_d_vec(data_type_specs, work_mat_history[, , simu_n + 1L])
     d_objective_frame = sum(d_frame_vec)
 
     # keep history of x mat
