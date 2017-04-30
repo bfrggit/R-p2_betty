@@ -54,6 +54,16 @@ proto_impact_step <<- function(x, step) {
     ifelse(x > step, 0, 1)
 }
 
+# PROTOTYPE of EXP impact functions
+proto_impact_exp <<- function(x, t_const) {
+    stopifnot(is.numeric(x))
+    stopifnot(is.numeric(t_const))
+    stopifnot(length(t_const) == 1)
+    stopifnot(x >= 0)
+
+    exp(-x / t_const) # RETURN
+}
+
 # PROTOTYPE of LOCAL ONLY impact functions
 proto_impact_local_only <<- function(x) {
     proto_impact_step(x, 0)
