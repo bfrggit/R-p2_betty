@@ -143,6 +143,7 @@ calc_work_mat_greedy_1 <<- function(
 
         max_score = 0
         max_c = NULL
+        proc_t_acc = c(0, 0, 0)
         for(jnd in 1L:val_n) { # for each node
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
@@ -158,17 +159,23 @@ calc_work_mat_greedy_1 <<- function(
                 val_m, val_n, val_k,
                 placement_frame, tmp_w
             )
-            tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step, 8 msec
+            proc_t = proc.time()[3]
+            tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
+            proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
+            proc_t = proc.time()[3]
             tmp_x_cur = omg_x_mat(
                 simu_n              = 0L,
                 x_0_frame_mat       = tmp_x_0_mat,
                 arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
                 arg_s_impact_mat    = s_impact_mat,     # global
                 arg_t_impact_mat    = t_impact_mat      # global
-            ) # slow step, 12 msec
+            ) # slow step
+            proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
             tmp_x_mat = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur)
             tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
-            tmp_u_mat = omg_u_mat(tmp_omega) # slow step, 15 msec
+            proc_t = proc.time()[3]
+            tmp_u_mat = omg_u_mat(tmp_omega) # slow step
+            proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
             tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
 
             # compute delta obj
@@ -193,12 +200,16 @@ calc_work_mat_greedy_1 <<- function(
         if(d_val_init + data_type_specs[max_c[2], "rate"] > data_quota) break
         mat_w[max_c[1], max_c[2]] = 1
         if(verbose) cat(
-            sprintf("    Iteration %d,", sum(mat_w)),
-            sprintf("jnd = %d,", max_c[1]),
-            sprintf("ind = %d,", which(placement_frame[max_c[1], ] == 1)[1]),
-            sprintf("knd = %d,", max_c[2]),
-            sprintf("score = %.2e", max_score),
-            "\n"
+            sprintf("    Iteration sum = %d,", sum(mat_w)),
+            sprintf("[%d,", which(placement_frame[max_c[1], ] == 1)[1]),
+            sprintf("%d,", max_c[1]),
+            sprintf("%d],", max_c[2]),
+            sprintf("scr = %.2e,", max_score),
+            sprintf("proc_t = %.0f %.0f %.0f msec\n",
+                1000 * proc_t_acc[1],
+                1000 * proc_t_acc[2],
+                1000 * proc_t_acc[3]
+            )
         )
         last_added_sensor = max_c
         num_chosen = num_chosen + 1L
