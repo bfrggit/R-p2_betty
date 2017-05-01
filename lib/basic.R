@@ -75,12 +75,10 @@ get_impact_f_type <<- function(type, ...) {
     stopifnot(is.character(type))
     stopifnot(length(type) == 1)
 
+    target_f = eval(parse(text = paste("proto_impact", type, sep = "_")))
     function(x) {
-        do.call(
-            paste("proto_impact", type, sep = "_"),
-            list(x, ...)
-        )
-    }
+        target_f(x, ...)
+    } # RETURN
 }
 
 # PROTOTYPE of BINARY util functions
@@ -116,12 +114,10 @@ get_util_f_type <<- function(type, ...) {
     stopifnot(is.character(type))
     stopifnot(length(type) == 1)
 
+    target_f = eval(parse(text = paste("proto_util", type, sep = "_")))
     function(x) {
-        do.call(
-            paste("proto_util", type, sep = "_"),
-            list(x, ...)
-        )
-    }
+        target_f(x, ...)
+    } # RETURN
 }
 
 } # ENDIF
