@@ -1,7 +1,7 @@
 # basic.R
 #
 # Created: As part of the initial version of the project
-# Updated: 2017-4-30
+# Updated: 2017-5-1
 #  Author: Charles Zhu
 #
 if(!exists("EX_BASIC_R")) {
@@ -104,9 +104,14 @@ proto_util_sum <<- function(vec) {
 
 # PROTOTYPE of LOG of sum util functions
 proto_util_log_sum <<- function(vec) {
-    stopifnot(is.numeric(vec))
+    # this function, as well as its alternatives, is supposed to be called
+    # very often. no type check occurs here. data types should be checked in
+    # the simulation script
 
-    log(sum(vec) + 1)
+    # removing the following type check saves quite a lot of time
+    # stopifnot(is.numeric(vec))
+
+    log(sum(vec) + 1) # RETURN
 }
 
 # general GETTER of util functions
