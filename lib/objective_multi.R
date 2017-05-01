@@ -208,7 +208,7 @@ omg_y_vec <<- function(work_mat_frame) {
 }
 
 omg_d_vec <<- function(data_type_specs, work_mat_frame) {
-    colSums(work_mat_frame) * data_type_spec_df[, "rate"] # RETURN
+    colSums(work_mat_frame) * data_type_specs[, "rate"] # RETURN
 }
 
 # MAIN objective func used in simulations
