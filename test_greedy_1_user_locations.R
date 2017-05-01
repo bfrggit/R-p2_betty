@@ -28,7 +28,7 @@ lockBinding("num_types", globalenv())
 num_static = as.integer(num_nodes * 0.6)
 lockBinding("num_static", globalenv())
 
-data_quota = 100000L
+data_quota = 150000L
 lockBinding("data_quota", globalenv())
 
 gamma_x = 1

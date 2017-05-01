@@ -75,32 +75,35 @@ calc_work_mat_greedy_1 <<- function(
             d_vec_init = omg_d_vec(data_type_specs, mat_w)
             d_val_init = sum(d_vec_init)
         } else { # update obj to reflect last added sensor
-            jnd = last_added_sensor[1]
-            knd = last_added_sensor[2]
-            ind = which(placement_frame[jnd, ] == 1)[1]
+            jnd = last_added_sensor[1]                  # index of added node
+            knd = last_added_sensor[2]                  # index of adder sensor
+            ind = which(placement_frame[jnd, ] == 1)[1] # cell index of node jnd
 
-            # update x
+            # update coverage
+            # only coverage of type knd is affected
             omega_mask = omg_omega_mat(
-                val_m = val_m,
-                val_n = val_n,
-                val_k = 1L,
+                val_m           = val_m,
+                val_n           = val_n,
+                val_k           = 1L,
                 placement_frame = placement_frame,
-                work_mat_frame = t(t(mat_w[, knd]))
-            )
+                work_mat_frame  = t(t(mat_w[, knd]))
+            ) # m by n by k, k = 1
             x_mat_mask = omg_x_mat(
-                simu_n = 0L,
-                x_0_frame_mat = omg_x_0_mat(omega_mask),
+                simu_n              = 0L,
+                x_0_frame_mat       = omg_x_0_mat(omega_mask),
                 arg_x_0_mat_history = array(0, dim = c(val_m, 1L, 1L)),
-                arg_s_impact_mat = s_impact_mat[knd], # should still be a list
-                arg_t_impact_mat = t_impact_mat[knd]
-            )
+                arg_s_impact_mat    = s_impact_mat[knd],    # should be a list
+                arg_t_impact_mat    = t_impact_mat[knd]     # should be a list
+            ) # m by k, k = 1
             x_mat_init[, knd] = 1 - (1 - x_mat_prev[, knd]) * (1 - x_mat_mask)
 
-            # update u, using simplified func of objective_multi
+            # update util, using simplified func of objective_multi
+            # only util of type knd in cell ind is affected
             u_mat_mask = local_util_f(placement_frame[, ind] * mat_w[, knd])
             u_mat_init[ind, knd] = u_mat_mask
 
             # update y
+            # only activation state of node jnd is affected
             y_vec_init[jnd] = 1
 
             # update d
@@ -111,24 +114,24 @@ calc_work_mat_greedy_1 <<- function(
         # omega_init_bak = omg_omega_mat(
         #     val_m, val_n, val_k,
         #     placement_frame = placement_frame,
-        #     work_mat_frame = mat_w
-        # )
+        #     work_mat_frame  = mat_w
+        # ) # m by n by k
         # if(simu_n > 0L) {
         #     x_mat_init_bak = omg_x_mat(
-        #         simu_n = simu_n,
-        #         x_0_frame_mat = omg_x_0_mat(omega_init_bak),
+        #         simu_n              = simu_n,
+        #         x_0_frame_mat       = omg_x_0_mat(omega_init_bak),
         #         arg_x_0_mat_history = x_0_mat_history,
-        #         arg_s_impact_mat = s_impact_mat,
-        #         arg_t_impact_mat = t_impact_mat
-        #     )
+        #         arg_s_impact_mat    = s_impact_mat,
+        #         arg_t_impact_mat    = t_impact_mat
+        #     ) # m by k
         # } else {
         #     x_mat_init_bak = omg_x_mat(
-        #         simu_n = simu_n,
-        #         x_0_frame_mat = omg_x_0_mat(omega_init_bak),
+        #         simu_n              = simu_n,
+        #         x_0_frame_mat       = omg_x_0_mat(omega_init_bak),
         #         arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-        #         arg_s_impact_mat = s_impact_mat,
-        #         arg_t_impact_mat = t_impact_mat
-        #     )
+        #         arg_s_impact_mat    = s_impact_mat,
+        #         arg_t_impact_mat    = t_impact_mat
+        #     ) # m by k
         # }
         # u_mat_init_bak = omg_u_mat(omega_init_bak)
         # stopifnot(abs(x_mat_init - x_mat_init_bak) < 1e-14)
@@ -143,8 +146,11 @@ calc_work_mat_greedy_1 <<- function(
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
             tmp_w[jnd, ] = capacity_mat[jnd, ]
-            tmp_attempt_knd = which(tmp_w[jnd, ] - mat_w[jnd, ] == 1)
-            if(length(tmp_attempt_knd) <= 0L) next
+
+            # get candidate of sensors to activate on node jnd
+            # active sensors in mat_w cannot be activated again
+            tmp_knd_cand = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
+            if(length(tmp_knd_cand) <= 0L) next
 
             # compute obj
             tmp_omega = omg_omega_mat(
@@ -175,7 +181,7 @@ calc_work_mat_greedy_1 <<- function(
             score_vec = ((gamma_x * delta_x_t + gamma_u * delta_u_t) *
                 data_type_specs$weight +
                 gamma_y * delta_y) / delta_d_t
-            for(knd in tmp_attempt_knd) {
+            for(knd in tmp_knd_cand) {
                 if(score_vec[knd] > max_score) {
                     max_score = score_vec[knd]
                     max_c = c(jnd = jnd, knd = knd)
