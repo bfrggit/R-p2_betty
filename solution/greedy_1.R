@@ -63,6 +63,7 @@ calc_work_mat_greedy_1 <<- function(
     #            data quota is used up
     last_added_sensor = NULL
     num_chosen = 0L
+    if(verbose) cat("...", "\n")
     while(num_chosen < num_sensor) {
         # paranoid check
         # stopifnot(num_chosen == sum(mat_w))
@@ -192,17 +193,17 @@ calc_work_mat_greedy_1 <<- function(
         if(d_val_init + data_type_specs[max_c[2], "rate"] > data_quota) break
         mat_w[max_c[1], max_c[2]] = 1
         if(verbose) cat(
-            "Chosen",
-            sprintf("node = %d,", max_c[1]),
-            sprintf("cell = %d,", which(placement_frame[max_c[1], ] == 1)[1]),
-            sprintf("sensor = %d,", max_c[2]),
-            sprintf("chosen = %d,", sum(mat_w)),
-            sprintf("milli_score = %.4f", 1000 * max_score),
+            sprintf("    Iteration %d,", sum(mat_w)),
+            sprintf("jnd = %d,", max_c[1]),
+            sprintf("ind = %d,", which(placement_frame[max_c[1], ] == 1)[1]),
+            sprintf("knd = %d,", max_c[2]),
+            sprintf("score = %.2e", max_score),
             "\n"
         )
         last_added_sensor = max_c
         num_chosen = num_chosen + 1L
     }
+    if(verbose) cat("...", "")
 
     mat_w # RETURN
 }

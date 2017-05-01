@@ -1,6 +1,7 @@
 # simu_gamma.R
 #
 # Created: 2017-4-23
+# Updated: 2017-5-1
 #  Author: Charles Zhu
 #
 if(!exists("EX_SIMU_GAMMA_R")) {
@@ -108,18 +109,15 @@ simulate_gamma <<- function(
     # MAIN LOOP
     for(simu_n in 0L:duration_frames) {
         simu_t = simu_n * t_frame
-        if(verbose) {
-            cat(
-                "Simulation",
-                sprintf("frame = %d of %d,", simu_n, duration_frames),
-                sprintf("time = %d", simu_t),
-                "\n"
-            )
-        }
-        update_placement_f(
-            t_frame = t_frame,
-            simu_n = simu_n
+        if(verbose) cat(
+            "Simulation",
+            sprintf("fr = %d of %d,", simu_n, duration_frames),
+            sprintf("simu_t = %d,", simu_t),
+            "proc_t = "
         )
+        proc_t = proc.time()[3]
+        update_placement_f(t_frame = t_frame, simu_n = simu_n)
+        if(verbose) cat(sprintf("%.0f", 1000 * (proc.time()[3] - proc_t)), "")
 
         # check placement
         # simu_n as index should get 1L offset
@@ -134,6 +132,7 @@ simulate_gamma <<- function(
 
         # run the algorithm
         # simu_n as index should get 1L offset
+        proc_t = proc.time()[3]
         work_mat = calc_work_mat_f(
             t_frame             = t_frame,
             simu_n              = simu_n,
@@ -148,10 +147,12 @@ simulate_gamma <<- function(
             data_quota          = data_quota,
             verbose             = verbose
         )
+        if(verbose) cat(sprintf("%.0f", 1000 * (proc.time()[3] - proc_t)), "")
         work_mat_history[, , simu_n + 1L] = work_mat
 
         # calculate objective function values and keep track of them
         # could be slow if not designed carefully
+        proc_t = proc.time()[3]
         objective_result = get_objective_f(
             t_frame             = t_frame,
             simu_n              = simu_n,
@@ -166,6 +167,9 @@ simulate_gamma <<- function(
             work_mat_history    = work_mat_history,
             verbose             = verbose
         )
+        if(verbose)
+            cat(sprintf("%.0f", 1000 * (proc.time()[3] - proc_t)), "msec\n")
+
         if(rich_return) {
             if(simu_n <= 0L) {
                 stopifnot(is.list(objective_result))
