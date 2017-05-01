@@ -91,16 +91,9 @@ omg_omega_mat <<- function(
     dimnames(omega_frame_mat)[[2]] = z_nd_str("n", val_n)
     dimnames(omega_frame_mat)[[3]] = z_nd_str("d", val_k)
 
-    for(jnd in 1L:val_n) { # simu_n as index should get 1L offset
-        omega_frame_mat[, jnd, ] = matrix(
-            # placement_roll[jnd, , simu_n + 1L],
-            placement_frame[jnd, ],
-            nrow = val_m, ncol = 1, byrow = FALSE
-        ) %*% matrix(
-            # work_mat_history[jnd, , simu_n + 1L],
-            work_mat_frame[jnd, ],
-            nrow = 1, ncol = val_k, byrow = TRUE
-        )
+    for(jnd in 1L:val_n) {
+        omega_frame_mat[, jnd, ] =
+            placement_frame[jnd, ] %*% t(work_mat_frame[jnd, ])
     }
 
     omega_frame_mat # RETURN
@@ -151,14 +144,8 @@ omg_x_mat <<- function(
             t_imp_len = min(simu_n + 1L, length(t_imp))
 
             # create spatial-temporal impact matrix
-            st_imp_ind_knd = matrix(
-                s_imp[ind, ],
-                nrow = val_m, ncol = 1L, byrow = FALSE
-            ) %*% matrix(
-                t_imp[
-                    (length(t_imp) - t_imp_len + 1L):length(t_imp)
-                ], nrow = 1L, ncol = t_imp_len, byrow = FALSE
-            )
+            st_imp_ind_knd = s_imp[ind, ] %*%
+                t(t_imp[(length(t_imp) - t_imp_len + 1L):length(t_imp)])
 
             # compute probability product
             x_frame_mat[ind, knd] = 1 - prod(
