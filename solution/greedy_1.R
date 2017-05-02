@@ -58,6 +58,23 @@ calc_work_mat_greedy_1 <<- function(
         )
     }
 
+    # initial val of obj maintained in loops
+    x_mat_init = x_mat_prev
+    u_mat_init = xu_mat_zero
+    y_vec_init = omg_y_vec(mat_w)
+    d_vec_init = omg_d_vec(data_type_specs, mat_w)
+    d_val_init = sum(d_vec_init)
+
+    omega_init = array(0, dim = c(val_m, val_n, val_k))
+    dimnames(omega_init)[[1]] = z_nd_str("c", val_m)
+    dimnames(omega_init)[[2]] = z_nd_str("n", val_n)
+    dimnames(omega_init)[[3]] = z_nd_str("d", val_k)
+
+    score = ifelse(capacity_mat > 0, NaN, -Inf)
+    dx_mat = ifelse(capacity_mat > 0, 0, -Inf)
+    du_mat = dx_mat
+    # dy_vec = ifelse(rowSums(capacity_mat) > 0, 1, +Inf)
+
     # loop until all sensors (on all nodes) are active,
     #            maximum score is not positive, or
     #            data quota is used up
@@ -68,27 +85,15 @@ calc_work_mat_greedy_1 <<- function(
         # paranoid check
         # stopifnot(num_chosen == sum(mat_w))
 
-        # obtain original coverage x, assuming zero work mat
-        if(is.null(last_added_sensor)) { # first time to search
-            x_mat_init = x_mat_prev
-            u_mat_init = xu_mat_zero
-            y_vec_init = omg_y_vec(mat_w)
-            d_vec_init = omg_d_vec(data_type_specs, mat_w)
-            d_val_init = sum(d_vec_init)
-        } else { # update obj to reflect last added sensor
-            jnd = last_added_sensor[1]                  # index of added node
-            knd = last_added_sensor[2]                  # index of adder sensor
-            ind = which(placement_frame[jnd, ] == 1)[1] # cell index of node jnd
+        # update obj to reflect last added sensor
+        if(!is.null(last_added_sensor)) {
+            jnd = last_added_sensor[1]  # index of added node
+            knd = last_added_sensor[2]  # index of adder sensor
+            ind = last_added_sensor[3]  # cell index of node jnd
 
             # update coverage
-            # only coverage of type knd is affected
-            omega_mask = omg_omega_mat(
-                val_m           = val_m,
-                val_n           = val_n,
-                val_k           = 1L,
-                placement_frame = placement_frame,
-                work_mat_frame  = t(t(mat_w[, knd]))
-            ) # m by n by k, k = 1
+            omega_init[ind, jnd, knd] = 1
+            omega_mask = omega_init[, , knd, drop = FALSE]
             x_mat_mask = omg_x_mat(
                 simu_n              = 0L,
                 x_0_frame_mat       = omg_x_0_mat(omega_mask),
@@ -172,11 +177,11 @@ calc_work_mat_greedy_1 <<- function(
             ) # slow step
             proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
             tmp_x_mat = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur)
-            tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
+            tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)  # vec, dim k
             proc_t = proc.time()[3]
-            tmp_u_mat = omg_u_mat(tmp_omega) # slow step
+            tmp_u_mat = omg_u_mat(tmp_omega)        # slow step
             proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
-            tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
+            tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
 
             # compute delta obj
             delta_x_t = tmp_x_vbt - x_vbt_init
@@ -192,7 +197,7 @@ calc_work_mat_greedy_1 <<- function(
             for(knd in tmp_knd_cand) {
                 if(score_vec[knd] > max_score) {
                     max_score = score_vec[knd]
-                    max_c = c(jnd = jnd, knd = knd)
+                    max_c = c(jnd, knd, which(placement_frame[jnd, ] == 1)[1])
                 }
             }
         }
@@ -201,7 +206,7 @@ calc_work_mat_greedy_1 <<- function(
         mat_w[max_c[1], max_c[2]] = 1
         if(verbose) cat(
             sprintf("    Iteration sum = %d,", sum(mat_w)),
-            sprintf("[%d,", which(placement_frame[max_c[1], ] == 1)[1]),
+            sprintf("[%d,", max_c[3]),
             sprintf("%d,", max_c[1]),
             sprintf("%d],", max_c[2]),
             sprintf("scr = %.2e,", max_score),
