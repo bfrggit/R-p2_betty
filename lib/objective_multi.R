@@ -83,17 +83,15 @@ omg_omega_mat <<- function(
     placement_frame,        # placement mat at current time frame
     work_mat_frame          # work mat at current time frame
 ) {
-    omega_frame_mat = array(
-        0,
-        dim = c(val_m, val_n, val_k)
-    )
+    omega_frame_mat = array(0, dim = c(val_m, val_n, val_k))
     dimnames(omega_frame_mat)[[1]] = z_nd_str("c", val_m)
     dimnames(omega_frame_mat)[[2]] = z_nd_str("n", val_n)
     dimnames(omega_frame_mat)[[3]] = z_nd_str("d", val_k)
 
     for(jnd in 1L:val_n) {
         omega_frame_mat[, jnd, ] =
-            placement_frame[jnd, ] %*% t(work_mat_frame[jnd, ])
+            placement_frame[jnd, ] %*%
+            work_mat_frame[jnd, , drop = FALSE]
     }
 
     omega_frame_mat # RETURN
@@ -139,13 +137,14 @@ omg_x_mat <<- function(
 
     for(ind in 1L:val_m) {
         for(knd in 1L:val_k) {
-            s_imp = arg_s_impact_mat[[knd]]
-            t_imp = arg_t_impact_mat[[knd]]
+            s_imp = arg_s_impact_mat[[knd]] # mat, m by m
+            t_imp = arg_t_impact_mat[[knd]] # vec
+            t_len_all = length(t_imp)
             t_imp_len = min(simu_n + 1L, length(t_imp))
 
             # create spatial-temporal impact matrix
             st_imp_ind_knd = s_imp[ind, ] %*%
-                t(t_imp[(length(t_imp) - t_imp_len + 1L):length(t_imp)])
+                t(t_imp[(t_len_all - t_imp_len + 1L):t_len_all])
 
             # compute probability product
             x_frame_mat[ind, knd] = 1 - prod(
@@ -178,9 +177,7 @@ omg_u_mat <<- function(omega_frame_mat) {
     u_frame_mat = apply(
         omega_frame_mat,
         MARGIN = c(1, 3),
-        FUN = function(omega_vec) {
-            local_util_f(omega_vec)
-        }
+        FUN = local_util_f
     ) # RETURN
 }
 
