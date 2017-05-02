@@ -91,6 +91,10 @@ calc_work_mat_greedy_1 <<- function(
             knd = last_added_sensor[2]  # index of adder sensor
             ind = last_added_sensor[3]  # cell index of node jnd
 
+            score[jnd, knd] = -Inf
+            dx_mat[jnd, knd] = -Inf
+            du_mat[jnd, knd] = -Inf
+
             # update coverage
             omega_init[ind, jnd, knd] = 1
             omega_mask = omega_init[, , knd, drop = FALSE]
@@ -105,7 +109,8 @@ calc_work_mat_greedy_1 <<- function(
 
             # update util, using simplified func of objective_multi
             # only util of type knd in cell ind is affected
-            u_mat_mask = local_util_f(placement_frame[, ind] * mat_w[, knd])
+            # u_mat_mask = local_util_f(placement_frame[, ind] * mat_w[, knd])
+            u_mat_mask = local_util_f(omega_mask[ind, , 1L])
             u_mat_init[ind, knd] = u_mat_mask
 
             # update y
@@ -156,13 +161,14 @@ calc_work_mat_greedy_1 <<- function(
 
             # get candidate of sensors to activate on node jnd
             # active sensors in mat_w cannot be activated again
-            tmp_knd_cand = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
-            if(length(tmp_knd_cand) <= 0L) next
+            knd_cand = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
+            num_cand = length(knd_cand)
+            if(num_cand <= 0L) next
 
             # compute obj
             tmp_omega = omg_omega_mat(
-                val_m, val_n, val_k,
-                placement_frame, tmp_w
+                val_m, val_n, num_cand,
+                placement_frame, tmp_w[, knd_cand, drop = FALSE]
             )
             proc_t = proc.time()[3]
             tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
@@ -171,39 +177,64 @@ calc_work_mat_greedy_1 <<- function(
             tmp_x_cur = omg_x_mat(
                 simu_n              = 0L,
                 x_0_frame_mat       = tmp_x_0_mat,
-                arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-                arg_s_impact_mat    = s_impact_mat,     # global
-                arg_t_impact_mat    = t_impact_mat      # global
+                arg_x_0_mat_history = array(0, dim = c(val_m, num_cand, 1L)),
+                arg_s_impact_mat    = s_impact_mat[knd_cand],   # global
+                arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
             ) # slow step
             proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
-            tmp_x_mat = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur)
+            tmp_x_mat = 1 - (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
             tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)  # vec, dim k
             proc_t = proc.time()[3]
             tmp_u_mat = omg_u_mat(tmp_omega)        # slow step
             proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
             tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
 
+            # paranoid check
+            # tmp_omega_bak = omg_omega_mat(
+            #     val_m, val_n, val_k,
+            #     placement_frame, tmp_w
+            # )
+            # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
+            # tmp_x_cur_bak = omg_x_mat(
+            #     simu_n              = 0L,
+            #     x_0_frame_mat       = tmp_x_0_mat_bak,
+            #     arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
+            #     arg_s_impact_mat    = s_impact_mat, # global
+            #     arg_t_impact_mat    = t_impact_mat  # global
+            # ) # slow step
+            # tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
+            # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
+            # stopifnot(abs(tmp_x_vbt - tmp_x_vbt_bak[knd_cand]) < 1e-14)
+
             # compute delta obj
-            delta_x_t = tmp_x_vbt - x_vbt_init
-            delta_u_t = tmp_u_vbt - u_vbt_init
-            delta_y = (1 - y_vec_init[jnd]) / val_m / val_k *
-                (tmp_w[jnd, ] - mat_w[jnd, ])
-            delta_d_t = data_type_specs$rate
+            # delta_x_t = tmp_x_vbt - x_vbt_init
+            # delta_u_t = tmp_u_vbt - u_vbt_init
+            dx_mat[jnd, knd_cand] = delta_x_t = tmp_x_vbt - x_vbt_init[knd_cand]
+            du_mat[jnd, knd_cand] = delta_u_t = tmp_u_vbt - u_vbt_init[knd_cand]
+            delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
+            delta_d_t = data_type_specs$rate[knd_cand]
 
             # compute score
-            score_vec = ((gamma_x * delta_x_t + gamma_u * delta_u_t) *
-                data_type_specs$weight +
-                gamma_y * delta_y) / delta_d_t
-            for(knd in tmp_knd_cand) {
-                if(score_vec[knd] > max_score) {
-                    max_score = score_vec[knd]
-                    max_c = c(jnd, knd, which(placement_frame[jnd, ] == 1)[1])
+            score[jnd, knd_cand] = score_vec = (
+                (gamma_x * delta_x_t + gamma_u * delta_u_t) *
+                data_type_specs$weight[knd_cand] +
+                gamma_y * delta_y
+            ) / delta_d_t
+            for(k in 1L:num_cand) {
+                knd = knd_cand[k]
+                if(score_vec[k] > max_score &&
+                   d_val_init + delta_d_t[k] <= data_quota # XXX: accumulative
+                ) {
+                    max_score = score_vec[k]
+                    max_c = c(
+                        jnd = jnd,
+                        knd = knd_cand[k],
+                        ind = which(placement_frame[jnd, ] == 1)[1]
+                    )
                 }
             }
         }
         if(is.null(max_c)) break
-        if(d_val_init + data_type_specs[max_c[2], "rate"] > data_quota) break
-        mat_w[max_c[1], max_c[2]] = 1
         if(verbose) cat(
             sprintf("    Iteration sum = %d,", sum(mat_w)),
             sprintf("[%d,", max_c[3]),
@@ -211,11 +242,12 @@ calc_work_mat_greedy_1 <<- function(
             sprintf("%d],", max_c[2]),
             sprintf("scr = %.2e,", max_score),
             sprintf("proc_t = %.0f %.0f %.0f msec\n",
-                1000 * proc_t_acc[1],
-                1000 * proc_t_acc[2],
-                1000 * proc_t_acc[3]
+                    1000 * proc_t_acc[1],
+                    1000 * proc_t_acc[2],
+                    1000 * proc_t_acc[3]
             )
         )
+        mat_w[max_c[1], max_c[2]] = 1
         last_added_sensor = max_c
         num_chosen = num_chosen + 1L
     }
