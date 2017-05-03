@@ -166,8 +166,8 @@ omg_xu_obj_type <<- function(xu_frame_mat) {
 
 omg_xu_obj <<- function(data_type_specs, xu_frame_by_type) {
     xu_objective_frame = sum(
-        xu_frame_by_type * data_type_specs[, "weight"]
-    ) / sum(data_type_specs[, "weight"]) # RETURN
+        xu_frame_by_type * data_type_specs$weight
+    ) / sum(data_type_specs$weight) # RETURN
 }
 
 #---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ omg_y_vec <<- function(work_mat_frame) {
 }
 
 omg_d_vec <<- function(data_type_specs, work_mat_frame) {
-    colSums(work_mat_frame) * data_type_specs[, "rate"] # RETURN
+    colSums(work_mat_frame) * data_type_specs$rate # RETURN
 }
 
 # MAIN objective func used in simulations

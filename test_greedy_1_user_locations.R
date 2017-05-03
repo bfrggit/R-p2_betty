@@ -18,7 +18,7 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 10L # 100L
+num_nodes = 20L # 100L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
@@ -219,12 +219,12 @@ objective_list = simulate_gamma(
 # VALIDATE average of cover and util
 stopifnot(
     abs(objective_list$general_avg["cover"] -
-        sum(objective_list$x_by_type_avg * data_type_spec_df[, "weight"])
+        sum(objective_list$x_by_type_avg * data_type_spec_df$weight)
     ) < 1e-8
 )
 stopifnot(
     abs(objective_list$general_avg["util"] -
-        sum(objective_list$u_by_type_avg * data_type_spec_df[, "weight"])
+        sum(objective_list$u_by_type_avg * data_type_spec_df$weight)
     ) < 1e-8
 )
 
