@@ -1,7 +1,7 @@
 # objective_multi.R
 #
 # Created: As part of the initial version of the project
-# Updated: 2017-4-30
+# Updated: 2017-5-2
 #  Author: Charles Zhu
 #
 if(!exists("EX_OBJECTIVE_MULTI_R")) {
