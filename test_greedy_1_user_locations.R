@@ -18,7 +18,7 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 20L # 100L
+num_nodes = 10L # 100L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
@@ -28,7 +28,7 @@ lockBinding("num_types", globalenv())
 num_static = as.integer(num_nodes * 0.6)
 lockBinding("num_static", globalenv())
 
-data_quota = 150000L
+data_quota = 350000L
 lockBinding("data_quota", globalenv())
 
 gamma_x = 1

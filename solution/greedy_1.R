@@ -40,11 +40,26 @@ calc_work_mat_greedy_1 <<- function(
 
     # prepare data for quick access
     num_sensor = sum(capacity_mat)
-    placement_frame = get_placement_f()[, , simu_n + 1L]
+    placement_roll = get_placement_f()
+    placement_frame = placement_roll[, , simu_n + 1L]
+    duration_frames = dim(placement_roll)[3] - 1L
     mat_score_zero = mat_w # for dimension names, contents are disregarded
     xu_mat_zero = matrix(0, nrow = val_m, ncol = val_k)
     rownames(xu_mat_zero) = z_nd_str("c", val_m)
     colnames(xu_mat_zero) = z_nd_str("d", val_k)
+
+    # adaptive data quota
+    if(simu_n <= 0L) {
+        greedy_1_data_history               <<- rep(0, duration_frames + 1L)
+        names(greedy_1_data_history)        <<- dimnames(placement_roll)[[3]]
+        greedy_1_quota_history              <<- greedy_1_data_history
+        greedy_1_quota_history[simu_n + 1L] <<- data_quota
+    } else {
+        greedy_1_quota_history[simu_n + 1L] <<- data_quota +
+            greedy_1_quota_history[simu_n] -
+            greedy_1_data_history[simu_n]
+    }
+    this_quota = greedy_1_quota_history[simu_n + 1L]
 
     # initial mat x at current time frame, assuming zero mat x_0
     x_mat_prev = xu_mat_zero
@@ -151,6 +166,11 @@ calc_work_mat_greedy_1 <<- function(
         x_vbt_init = omg_xu_obj_type(x_mat_init)
         u_vbt_init = omg_xu_obj_type(u_mat_init)
 
+        # paranoid verification, part 1
+        # score_old = score
+        # dx_mat_old = dx_mat
+        # du_mat_old = du_mat
+
         max_score = 0
         max_c = NULL
         proc_t_acc = c(0, 0, 0)
@@ -159,81 +179,130 @@ calc_work_mat_greedy_1 <<- function(
             tmp_w = mat_w
             tmp_w[jnd, ] = capacity_mat[jnd, ]
 
-            # get candidate of sensors to activate on node jnd
-            # active sensors in mat_w cannot be activated again
-            knd_cand = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
-            num_cand = length(knd_cand)
-            if(num_cand <= 0L) next
-
-            # compute obj
-            tmp_omega = omg_omega_mat(
-                val_m, val_n, num_cand,
-                placement_frame, tmp_w[, knd_cand, drop = FALSE]
-            )
-            proc_t = proc.time()[3]
-            tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
-            proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
-            proc_t = proc.time()[3]
-            tmp_x_cur = omg_x_mat(
-                simu_n              = 0L,
-                x_0_frame_mat       = tmp_x_0_mat,
-                arg_x_0_mat_history = array(0, dim = c(val_m, num_cand, 1L)),
-                arg_s_impact_mat    = s_impact_mat[knd_cand],   # global
-                arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
-            ) # slow step
-            proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
-            tmp_x_mat = 1 - (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
-            tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)  # vec, dim k
-            proc_t = proc.time()[3]
-            tmp_u_mat = omg_u_mat(tmp_omega)        # slow step
-            proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
-            tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
+            # get list of valid sensors to compare scores
+            # active sensors in mat_w are not valid
+            # only valid sensors can be activated
+            knd_vali = which(is.finite(score[jnd, ]) | is.nan(score[jnd, ]))
+            num_vali = length(knd_vali)
+            if(num_vali <= 0L) next
 
             # paranoid check
-            # tmp_omega_bak = omg_omega_mat(
-            #     val_m, val_n, val_k,
-            #     placement_frame, tmp_w
-            # )
-            # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
-            # tmp_x_cur_bak = omg_x_mat(
-            #     simu_n              = 0L,
-            #     x_0_frame_mat       = tmp_x_0_mat_bak,
-            #     arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-            #     arg_s_impact_mat    = s_impact_mat, # global
-            #     arg_t_impact_mat    = t_impact_mat  # global
-            # ) # slow step
-            # tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
-            # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
-            # stopifnot(abs(tmp_x_vbt - tmp_x_vbt_bak[knd_cand]) < 1e-14)
+            # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
+            # stopifnot(knd_vali == knd_vali_bak)
 
-            # compute delta obj
-            # delta_x_t = tmp_x_vbt - x_vbt_init
-            # delta_u_t = tmp_u_vbt - u_vbt_init
-            dx_mat[jnd, knd_cand] = delta_x_t = tmp_x_vbt - x_vbt_init[knd_cand]
-            du_mat[jnd, knd_cand] = delta_u_t = tmp_u_vbt - u_vbt_init[knd_cand]
-            delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
-            delta_d_t = data_type_specs$rate[knd_cand]
+            # get candidate of sensors that need their scores updated
+            # candidates must be valid
+            # knd_cand = knd_vali
+            if(is.null(last_added_sensor) || jnd == last_added_sensor[1]) {
+                knd_cand = knd_vali
+            } else {
+                knd_cand = last_added_sensor[2]
+                if(!is.finite(score[jnd, knd_cand])) knd_cand = integer(0)
+            }
+            num_cand = length(knd_cand)
+            # if(num_cand <= 0L) next
 
-            # compute score
-            score[jnd, knd_cand] = score_vec = (
-                (gamma_x * delta_x_t + gamma_u * delta_u_t) *
-                data_type_specs$weight[knd_cand] +
-                gamma_y * delta_y
-            ) / delta_d_t
-            for(k in 1L:num_cand) {
-                knd = knd_cand[k]
-                if(score_vec[k] > max_score &&
-                   d_val_init + delta_d_t[k] <= data_quota # XXX: accumulative
-                ) {
-                    max_score = score_vec[k]
+            if(num_cand > 0L){
+                # compute obj
+                tmp_omega = omg_omega_mat(
+                    val_m, val_n, num_cand,
+                    placement_frame, tmp_w[, knd_cand, drop = FALSE]
+                )
+                proc_t = proc.time()[3]
+                tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
+                proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
+                proc_t = proc.time()[3]
+                tmp_x_cur = omg_x_mat(
+                    simu_n              = 0L,
+                    x_0_frame_mat       = tmp_x_0_mat,
+                    arg_x_0_mat_history = array(0,
+                        dim = c(val_m, num_cand, 1L)),
+                    arg_s_impact_mat    = s_impact_mat[knd_cand],   # global
+                    arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
+                ) # slow step
+                proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
+                tmp_x_mat = 1 - (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
+                tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)  # vec, dim k
+                proc_t = proc.time()[3]
+                tmp_u_mat = omg_u_mat(tmp_omega)        # slow step
+                proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
+                tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
+
+                # paranoid check
+                # tmp_omega_bak = omg_omega_mat(
+                #     val_m, val_n, val_k,
+                #     placement_frame, tmp_w
+                # )
+                # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
+                # tmp_x_cur_bak = omg_x_mat(
+                #     simu_n              = 0L,
+                #     x_0_frame_mat       = tmp_x_0_mat_bak,
+                #     arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
+                #     arg_s_impact_mat    = s_impact_mat, # global
+                #     arg_t_impact_mat    = t_impact_mat  # global
+                # ) # slow step
+                # tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
+                # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
+                # stopifnot(abs(tmp_x_vbt - tmp_x_vbt_bak[knd_cand]) < 1e-14)
+
+                # compute delta obj
+                # delta_x_t = tmp_x_vbt - x_vbt_init
+                # delta_u_t = tmp_u_vbt - u_vbt_init
+                dx_mat[jnd, knd_cand] = delta_x_t =
+                    tmp_x_vbt - x_vbt_init[knd_cand]
+                du_mat[jnd, knd_cand] = delta_u_t =
+                    tmp_u_vbt - u_vbt_init[knd_cand]
+                delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
+                delta_d_t = data_type_specs$rate[knd_cand]
+
+                # compute score
+                score[jnd, knd_cand] = score_vec = (
+                    (gamma_x * delta_x_t + gamma_u * delta_u_t) *
+                    data_type_specs$weight[knd_cand] +
+                    gamma_y * delta_y
+                ) / delta_d_t
+            } # ENDIF
+
+            # update maximum valid score
+            # for(knd in knd_vali) {
+            #     if(score[jnd, knd] > max_score &&
+            #        d_val_init + data_type_specs$rate[knd] <= data_quota) {
+            #         max_score = score[jnd, knd]
+            #         max_c = c(
+            #             jnd = jnd,
+            #             knd = knd,
+            #             ind = which(placement_frame[jnd, ] == 1)[1]
+            #         )
+            #     }
+            # }
+
+            # update maximum valid score
+            quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
+            for(knd in knd_vali) {
+                if(score[jnd, knd] > max_score && quota_chk[knd]) {
+                    max_score = score[jnd, knd]
                     max_c = c(
                         jnd = jnd,
-                        knd = knd_cand[k],
+                        knd = knd,
                         ind = which(placement_frame[jnd, ] == 1)[1]
                     )
                 }
             }
-        }
+        } # ENDFOR
+
+        # paranoid verification, part 2
+        # which sensor scores have been updated
+        # if(is.null(last_added_sensor)) {
+        #     stopifnot(is.finite(score) == is.nan(score_old))
+        #     stopifnot(is.infinite(score) == is.infinite(score_old))
+        # } else {
+        #     stopifnot(is.finite(score) <= is.finite(score_old))
+        #     neq_ls = which((score == score_old) == FALSE, arr.ind = TRUE)
+        #     stopifnot(neq_ls[, 1] == last_added_sensor[1] |
+        #               neq_ls[, 2] == last_added_sensor[2])
+        # }
+
+        last_added_sensor = max_c
         if(is.null(max_c)) break
         if(verbose) cat(
             sprintf("    Iteration sum = %d,", sum(mat_w)),
@@ -247,11 +316,16 @@ calc_work_mat_greedy_1 <<- function(
                     1000 * proc_t_acc[3]
             )
         )
+
+        # update the solution with the chosen sensor
         mat_w[max_c[1], max_c[2]] = 1
-        last_added_sensor = max_c
         num_chosen = num_chosen + 1L
-    }
+    } # ENDWHILE
+
+    # print(score)
     if(verbose) cat("...", "")
+    greedy_1_data_history[simu_n + 1L] <<-
+        sum(colSums(mat_w) * data_type_specs$rate)
 
     mat_w # RETURN
 }
