@@ -1,7 +1,7 @@
 # simu_gamma.R
 #
 # Created: 2017-4-23
-# Updated: 2017-5-1
+# Updated: 2017-5-3
 #  Author: Charles Zhu
 #
 if(!exists("EX_SIMU_GAMMA_R")) {
@@ -29,7 +29,7 @@ simulate_gamma <<- function(
     calc_work_mat_f,        # PRIMARY function that implements an ALGORITHM
     get_objective_f,        # function to get objective values
     local_util_f,           # function to evaluate local util in each cell
-    data_quota = 0L,        # as constraint, byte / sec
+    data_quota = +Inf,      # as constraint, byte / sec
     verbose = FALSE,
     rich_return = TRUE      # return a list of multiple obj
 ) {
@@ -65,7 +65,7 @@ simulate_gamma <<- function(
     stopifnot(is.function(get_objective_f))
     stopifnot(is.function(local_util_f))
 
-    stopifnot(is.integer(data_quota))
+    stopifnot(is.integer(data_quota) || is.infinite(data_quota))
     stopifnot(length(data_quota) == 1L)
     stopifnot(data_quota >= 0L)
 
