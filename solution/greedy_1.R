@@ -387,7 +387,7 @@ calc_work_mat_greedy_1 <<- function(
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
 
-        if(verbose){
+        if(verbose && any(proc_t_acc >= 1e-2)){
             cat(
                 sprintf("    Iteration sum = %d,", num_chosen),
                 sprintf("proc_t = %.0f %.0f %.0f msec",
