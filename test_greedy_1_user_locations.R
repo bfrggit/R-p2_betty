@@ -18,7 +18,7 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 20L # 100L
+num_nodes = 30L # 100L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
