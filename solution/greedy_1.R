@@ -294,31 +294,31 @@ calc_work_mat_greedy_1 <<- function(
             } # ENDIF
 
             # paranoid check, compute backup obj from tmp_w
-            tmp_omega_bak = omg_omega_mat(
-                val_m, val_n, val_k,
-                placement_frame, tmp_w
-            )
-            tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
-            tmp_x_cur_bak = omg_x_mat(
-                simu_n              = 0L,
-                x_0_frame_mat       = tmp_x_0_mat_bak,
-                arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-                arg_s_impact_mat    = s_impact_mat, # global
-                arg_t_impact_mat    = t_impact_mat  # global
-            ) # slow step
-            tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
-            tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
-            tmp_u_mat_bak = omg_u_mat(tmp_omega_bak)
-            tmp_u_vbt_bak = omg_xu_obj_type(tmp_u_mat_bak)
+            # tmp_omega_bak = omg_omega_mat(
+            #     val_m, val_n, val_k,
+            #     placement_frame, tmp_w
+            # )
+            # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
+            # tmp_x_cur_bak = omg_x_mat(
+            #     simu_n              = 0L,
+            #     x_0_frame_mat       = tmp_x_0_mat_bak,
+            #     arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
+            #     arg_s_impact_mat    = s_impact_mat, # global
+            #     arg_t_impact_mat    = t_impact_mat  # global
+            # ) # slow step
+            # tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
+            # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
+            # tmp_u_mat_bak = omg_u_mat(tmp_omega_bak)
+            # tmp_u_vbt_bak = omg_xu_obj_type(tmp_u_mat_bak)
 
             # paranoid check, computer backup score
-            dx_t_bak = tmp_x_vbt_bak - x_vbt_init
-            du_t_bak = tmp_u_vbt_bak - u_vbt_init
-            dy_bak = (1 - y_vec_init[jnd]) / val_m / val_k
-            s_vc_bak = ((gamma_x * dx_t_bak + gamma_u * du_t_bak) *
-                data_type_specs$weight + gamma_y * dy_bak
-            ) / data_type_specs$rate
-            stopifnot(abs(score[jnd, knd_vali] - s_vc_bak[knd_vali]) < 1e-14)
+            # dx_t_bak = tmp_x_vbt_bak - x_vbt_init
+            # du_t_bak = tmp_u_vbt_bak - u_vbt_init
+            # dy_bak = (1 - y_vec_init[jnd]) / val_m / val_k
+            # s_vc_bak = ((gamma_x * dx_t_bak + gamma_u * du_t_bak) *
+            #     data_type_specs$weight + gamma_y * dy_bak
+            # ) / data_type_specs$rate
+            # stopifnot(abs(score[jnd, knd_vali] - s_vc_bak[knd_vali]) < 1e-14)
 
             # update maximum valid score, alternative approach
             # for(knd in knd_vali) {
