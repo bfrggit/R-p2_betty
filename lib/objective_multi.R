@@ -401,4 +401,12 @@ omg_x_vec_k1_fr1 <<- function(
 #---------------------------------------------------------------------------
 # END EVALUATION functions of coverage objective for special case
 
+omg_u_vec_k1 <<- function(omega_frame_mat_k1) {
+    u_frame_mat = apply(
+        omega_frame_mat_k1,
+        MARGIN = 1,
+        FUN = local_util_f
+    ) # RETURN
+}
+
 } # ENDIF

@@ -261,10 +261,10 @@ calc_work_mat_greedy_1 <<- function(
                             tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
 
                         # compute obj using original func
-                        tmp_omega = omg_omega_mat(
-                            val_m, val_n, 1L,
-                            placement_frame, tmp_w[, knd_up_x, drop = FALSE]
-                        )
+                        # tmp_omega = omg_omega_mat(
+                        #     val_m, val_n, 1L,
+                        #     placement_frame, tmp_w[, knd_up_x, drop = FALSE]
+                        # )
                         # tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
                         # tmp_x_cur = omg_x_mat(
                         #     simu_n              = 0L,
@@ -283,12 +283,18 @@ calc_work_mat_greedy_1 <<- function(
                         proc_t = proc.time()[3]
                         if(placement_frame[jnd] ==
                            placement_frame[last_added_sensor[1]]) {
-                            tmp_u_mat = omg_u_mat(tmp_omega)    # slow step
+                            tmp_u_vec_k1 = omg_u_vec_k1(tmp_omega_k1)
                             proc_t_acc[3] =
                                 proc_t_acc[3] + proc.time()[3] - proc_t
-                            tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
+                            tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
                             du_mat[jnd, knd_up_x] =
-                                tmp_u_vbt - u_vbt_init[knd_up_x]
+                                tmp_u_vbt_k1 - u_vbt_init[knd_up_x]
+
+                            # compute obj using original func
+                            # tmp_u_mat = omg_u_mat(tmp_omega)    # slow step
+                            # tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
+                            # du_k1_bak = tmp_u_vbt - u_vbt_init[knd_up_x]
+                            # stopifnot(du_mat[jnd, knd_up_x] == du_k1_bak)
                         } else proc_t_acc[3] =
                             proc_t_acc[3] + proc.time()[3] - proc_t
                     }
