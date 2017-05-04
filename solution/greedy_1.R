@@ -39,6 +39,9 @@ calc_work_mat_greedy_1 <<- function(
     rownames(mat_w) = z_nd_str("n", val_n)
     colnames(mat_w) = z_nd_str("d", val_k)
 
+    # override verbose msg
+    # verbose = FALSE
+
     # prepare data for quick access
     num_sensor = sum(capacity_mat)
     placement_roll = get_placement_f()
@@ -382,19 +385,26 @@ calc_work_mat_greedy_1 <<- function(
         # }
 
         last_added_sensor = max_c
-        if(is.null(max_c)) break
-        if(verbose) cat(
-            sprintf("    Iteration sum = %d,", sum(mat_w)),
-            sprintf("[%d,", max_c[3]),
-            sprintf("%d,", max_c[1]),
-            sprintf("%d],", max_c[2]),
-            sprintf("scr = %.2e,", max_score),
-            sprintf("proc_t = %.0f %.0f %.0f msec\n",
+        # stopifnot(num_chosen == sum(mat_w))
+
+        if(verbose){
+            cat(
+                sprintf("    Iteration sum = %d,", num_chosen),
+                sprintf("proc_t = %.0f %.0f %.0f msec",
                     1000 * proc_t_acc[1],
                     1000 * proc_t_acc[2],
                     1000 * proc_t_acc[3]
+                )
             )
-        )
+            if(is.null(max_c)) {
+                cat("\n")
+                break
+            }
+            cat(
+                sprintf(", [%d %d %d],", max_c[3], max_c[1], max_c[2]),
+                sprintf("scr = %.2e\n", max_score)
+            )
+        } else if(is.null(max_c)) break
 
         # update the solution with the chosen sensor
         mat_w[max_c[1], max_c[2]] = 1
@@ -402,7 +412,12 @@ calc_work_mat_greedy_1 <<- function(
     } # ENDWHILE
 
     # print(score)
-    if(verbose) cat("...", "")
+    if(verbose) {
+        cat(
+            sprintf("    Iteration end = %d", num_chosen),
+            "...", ""
+        )
+    }
     greedy_1_data_history[simu_n + 1L] <<-
         sum(colSums(mat_w) * data_type_specs$rate)
 
