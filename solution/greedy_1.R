@@ -1,7 +1,7 @@
 # greedy_1.R
 #
 # Created: 2017-4-30
-# Updated: 2017-5-2
+# Updated: 2017-5-3
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GREEDY_1_R")) {
@@ -294,7 +294,7 @@ calc_work_mat_greedy_1 <<- function(
                 ) / delta_d_t
             } # ENDIF
 
-            # paranoid check
+            # paranoid check, compute backup obj from tmp_w
             # tmp_omega_bak = omg_omega_mat(
             #     val_m, val_n, val_k,
             #     placement_frame, tmp_w
