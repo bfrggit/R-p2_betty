@@ -344,4 +344,61 @@ get_objective_multi_f <<- function(
     } # RETURN
 }
 
+# special case of a func module for single data type
+# could be useful in solution func
+omg_omega_mat_k1 <<- function(
+    val_m,
+    val_n,
+    placement_frame,        # placement mat at current time frame
+    work_vec_frame_k1       # work mat at current time frame
+) {
+    omega_frame_mat = matrix(0, nrow = val_m, ncol = val_n)
+    rownames(omega_frame_mat) = z_nd_str("c", val_m)
+    colnames(omega_frame_mat) = z_nd_str("n", val_n)
+
+    for(jnd in 1L:val_n) {
+        omega_frame_mat[, jnd] =
+            placement_frame[jnd, ] *
+            work_vec_frame_k1[jnd]
+    }
+
+    omega_frame_mat # RETURN
+}
+
+#---------------------------------------------------------------------------
+# BEGIN EVALUATION functions of coverage objective for special case
+
+omg_x_0_vec_k1 <<- function(omega_frame_mat_k1) {
+    x_0_frame_vec = apply(
+        omega_frame_mat_k1,
+        MARGIN = 1,
+        FUN = function(omega_vec) {
+            1 - prod(1 - omega_vec)
+        }
+    ) # RETURN
+}
+
+omg_x_vec_k1_fr1 <<- function(
+    x_0_frame_vec_k1,
+    arg_s_impact_mat_k1,
+    arg_t_impact_mat_k1
+) {
+    x_frame_vec = x_0_frame_vec_k1 # for dimension names
+    val_m = length(x_frame_vec)
+
+    for(ind in 1L:val_m) {
+        s_imp = arg_s_impact_mat_k1 # mat, m by m
+        t_imp = arg_t_impact_mat_k1 # vec
+        t_len_all = length(t_imp)
+
+        st_imp_ind_knd = s_imp[ind, ] * t_imp[t_len_all]
+        x_frame_vec[ind] = 1 - prod(1 - x_0_frame_vec_k1 * st_imp_ind_knd)
+    }
+
+    x_frame_vec # RETURN
+}
+
+#---------------------------------------------------------------------------
+# END EVALUATION functions of coverage objective for special case
+
 } # ENDIF

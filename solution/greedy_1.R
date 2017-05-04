@@ -239,15 +239,33 @@ calc_work_mat_greedy_1 <<- function(
                 } else { # following selection
                     knd_up_x = last_added_sensor[2]
                     if(is.finite(score[jnd, knd_up_x])) {
-                        # compute obj
+                        # compute obj using single-case func
+                        tmp_omega_k1 = omg_omega_mat_k1(
+                            val_m, val_n,
+                            placement_frame, tmp_w[, knd_up_x]
+                        )
+                        proc_t = proc.time()[3]
+                        tmp_x_0_vec_k1 = omg_x_0_vec_k1(tmp_omega_k1)
+                        proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
+                        proc_t = proc.time()[3]
+                        tmp_x_cur_k1 = omg_x_vec_k1_fr1(
+                            x_0_frame_vec_k1    = tmp_x_0_vec_k1,
+                            arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
+                            arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
+                        )
+                        proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
+                        tmp_x_vec_k1 = 1 -
+                            (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur_k1)
+                        tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
+                        dx_mat[jnd, knd_up_x] =
+                            tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
+
+                        # compute obj using original func
                         tmp_omega = omg_omega_mat(
                             val_m, val_n, 1L,
                             placement_frame, tmp_w[, knd_up_x, drop = FALSE]
                         )
-                        proc_t = proc.time()[3]
                         tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
-                        proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
-                        proc_t = proc.time()[3]
                         tmp_x_cur = omg_x_mat(
                             simu_n              = 0L,
                             x_0_frame_mat       = tmp_x_0_mat,
@@ -256,11 +274,11 @@ calc_work_mat_greedy_1 <<- function(
                             arg_s_impact_mat    = s_impact_mat[knd_up_x],
                             arg_t_impact_mat    = t_impact_mat[knd_up_x]
                         ) # slow step
-                        proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
                         tmp_x_mat =
                             1 - (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur)
                         tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
-                        dx_mat[jnd, knd_up_x] = tmp_x_vbt - x_vbt_init[knd_up_x]
+                        dx_k1_bak = tmp_x_vbt - x_vbt_init[knd_up_x]
+                        stopifnot(dx_mat[jnd, knd_up_x] == dx_k1_bak)
 
                         proc_t = proc.time()[3]
                         if(placement_frame[jnd] ==
