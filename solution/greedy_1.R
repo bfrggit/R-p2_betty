@@ -202,7 +202,7 @@ calc_work_mat_greedy_1 <<- function(
             }
             num_cand = length(knd_cand)
             # if(num_cand <= 0L) next
-            score_updated = FALSE
+
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
                     # compute obj
@@ -231,15 +231,8 @@ calc_work_mat_greedy_1 <<- function(
                     tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
 
                     # compute delta obj
-                    # delta_x_t = tmp_x_vbt - x_vbt_init
-                    # delta_u_t = tmp_u_vbt - u_vbt_init
-                    dx_mat[jnd, knd_cand] = delta_x_t =
-                        tmp_x_vbt - x_vbt_init[knd_cand]
-                    du_mat[jnd, knd_cand] = delta_u_t =
-                        tmp_u_vbt - u_vbt_init[knd_cand]
-                    delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
-                    delta_d_t = data_type_specs$rate[knd_cand]
-                    score_updated = TRUE
+                    dx_mat[jnd, knd_cand] = tmp_x_vbt - x_vbt_init[knd_cand]
+                    du_mat[jnd, knd_cand] = tmp_u_vbt - u_vbt_init[knd_cand]
                 } else { # following selection
                     knd_up_x = last_added_sensor[2]
                     if(is.finite(score[jnd, knd_up_x])) {
@@ -278,27 +271,27 @@ calc_work_mat_greedy_1 <<- function(
                         } else proc_t_acc[3] =
                             proc_t_acc[3] + proc.time()[3] - proc_t
                     }
-                    # compute delta obj
-                    delta_x_t = dx_mat[jnd, knd_cand]
-                    delta_u_t = du_mat[jnd, knd_cand]
-                    delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
-                    delta_d_t = data_type_specs$rate[knd_cand]
-                    score_updated = TRUE
                 } # ENDIF
-            } # ENDIF
-            # compute score
-            # score[jnd, knd_cand] = score_vec = (
-            #     (gamma_x * delta_x_t + gamma_u * delta_u_t) *
-            #         data_type_specs$weight[knd_cand] +
-            #         gamma_y * delta_y
-            # ) / delta_d_t
+                # compute score
+                # score[jnd, knd_cand] = score_vec = (
+                #     (gamma_x * delta_x_t + gamma_u * delta_u_t) *
+                #         data_type_specs$weight[knd_cand] +
+                #         gamma_y * delta_y
+                # ) / delta_d_t
 
-            # compute score
-            score[jnd, knd_cand] = score_vec = (
-                (gamma_x * delta_x_t + gamma_u * delta_u_t) *
-                    data_type_specs$weight[knd_cand] +
-                    gamma_y * delta_y
-            ) / delta_d_t
+                # compute delta obj
+                delta_x_t = dx_mat[jnd, knd_cand]
+                delta_u_t = du_mat[jnd, knd_cand]
+                delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
+                delta_d_t = data_type_specs$rate[knd_cand]
+
+                # compute score
+                score[jnd, knd_cand] = (
+                    (gamma_x * delta_x_t + gamma_u * delta_u_t) *
+                        data_type_specs$weight[knd_cand] +
+                        gamma_y * delta_y
+                ) / delta_d_t
+            } # ENDIF
 
             # paranoid check, compute backup obj from tmp_w
             tmp_omega_bak = omg_omega_mat(
