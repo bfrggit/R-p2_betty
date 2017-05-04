@@ -265,20 +265,20 @@ calc_work_mat_greedy_1 <<- function(
                             val_m, val_n, 1L,
                             placement_frame, tmp_w[, knd_up_x, drop = FALSE]
                         )
-                        tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
-                        tmp_x_cur = omg_x_mat(
-                            simu_n              = 0L,
-                            x_0_frame_mat       = tmp_x_0_mat,
-                            arg_x_0_mat_history =
-                                array(0, dim = c(val_m, 1L, 1L)),
-                            arg_s_impact_mat    = s_impact_mat[knd_up_x],
-                            arg_t_impact_mat    = t_impact_mat[knd_up_x]
-                        ) # slow step
-                        tmp_x_mat =
-                            1 - (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur)
-                        tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
-                        dx_k1_bak = tmp_x_vbt - x_vbt_init[knd_up_x]
-                        stopifnot(dx_mat[jnd, knd_up_x] == dx_k1_bak)
+                        # tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
+                        # tmp_x_cur = omg_x_mat(
+                        #     simu_n              = 0L,
+                        #     x_0_frame_mat       = tmp_x_0_mat,
+                        #     arg_x_0_mat_history =
+                        #         array(0, dim = c(val_m, 1L, 1L)),
+                        #     arg_s_impact_mat    = s_impact_mat[knd_up_x],
+                        #     arg_t_impact_mat    = t_impact_mat[knd_up_x]
+                        # ) # slow step
+                        # tmp_x_mat =
+                        #     1 - (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur)
+                        # tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
+                        # dx_k1_bak = tmp_x_vbt - x_vbt_init[knd_up_x]
+                        # stopifnot(dx_mat[jnd, knd_up_x] == dx_k1_bak)
 
                         proc_t = proc.time()[3]
                         if(placement_frame[jnd] ==
