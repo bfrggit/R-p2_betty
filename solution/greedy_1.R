@@ -1,7 +1,7 @@
 # greedy_1.R
 #
 # Created: 2017-4-30
-# Updated: 2017-5-4
+# Updated: 2017-5-5
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GREEDY_1_R")) {
@@ -172,8 +172,8 @@ calc_work_mat_greedy_1 <<- function(
 
         # paranoid verification, part 1
         # score_old = score
-        dx_mat_old = dx_mat
-        du_mat_old = du_mat
+        # dx_mat_old = dx_mat
+        # du_mat_old = du_mat
 
         max_score = 0
         max_c = NULL
