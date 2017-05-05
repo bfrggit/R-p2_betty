@@ -185,44 +185,48 @@ calc_work_mat_greedy_2 <<- function(
         max_score = 0
         max_c = NULL
         proc_t_acc = c(0, 0, 0)
-        for(jnd in 1L:val_n) { # for each node
+        for(ind in 1L:val_m) { # for each cell
+            # find out which sensors types still have at least one valid sensor
+            # that could be activated to improve scores of the cell-type combos
+            # need to maintain a list of valid nodes for each cell-type
             # TODO
+
+            # if there is at least one such sensor type
+            if(is.null(last_added_sensor)) { # if this is the first iteration
+                # compute scores for all possible cell-type combos
+                # TODO
+
+                # create mat x_0
+                # TODO
+
+                # compute mat x
+                # TODO
+
+                # compute mat u
+                # TODO
+
+                # compute dx mat and du mat
+                # TODO
+
+            } else {
+                # for dx mat, only the same sensor type (as the last added one)
+                #   needs to be updated
+                # TODO
+
+                # for du mat, only the same cell (as the last added one was in)
+                #   needs to be updated
+                # TODO
+
+            }
+            # TODO: compute score for each cell-type
 
         } # ENDFOR
 
-        # paranoid verification, part 2
-        # which sensor scores have been updated
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.finite(score) == is.nan(score_old))
-        #     stopifnot(is.infinite(score) == is.infinite(score_old))
-        # } else {
-        #     stopifnot(is.finite(score) <= is.finite(score_old))
-        #     neq_ls = which((score == score_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 1] == last_added_sensor[1] |
-        #               neq_ls[, 2] == last_added_sensor[2])
-        # }
+        # find out the cell-type that contributes the highest score
+        # TODO
 
-        # paranoid verification, part 2, x alternative
-        # which delta_x eval have been updated
-        # stopifnot(is.finite(dx_mat) == is.finite(dx_mat_old))
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.infinite(dx_mat) == is.infinite(dx_mat_old))
-        # } else {
-        #     neq_ls = which((dx_mat == dx_mat_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 2] == last_added_sensor[2])
-        # }
-
-        # paranoid verification, part 2, u alternative
-        # which delta_u eval have been updated
-        # stopifnot(is.finite(du_mat) == is.finite(du_mat_old))
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.infinite(du_mat) == is.infinite(du_mat_old))
-        # } else {
-        #     neq_ls = which((du_mat == du_mat_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 2] == last_added_sensor[2] &
-        #               placement_frame[neq_ls[, 1]] ==
-        #                   placement_frame[last_added_sensor[1]])
-        # }
+        # find out the node that helps that cell with the highest score
+        # TODO
 
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
