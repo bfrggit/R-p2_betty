@@ -1,7 +1,7 @@
 # objective_multi.R
 #
 # Created: As part of the initial version of the project
-# Updated: 2017-5-2
+# Updated: 2017-5-4
 #  Author: Charles Zhu
 #
 if(!exists("EX_OBJECTIVE_MULTI_R")) {
@@ -135,25 +135,20 @@ omg_x_mat <<- function(
     x_0_mat_combo = arg_x_0_mat_history
     x_0_mat_combo[, , simu_n + 1L] = x_0_frame_mat
 
-    for(ind in 1L:val_m) {
-        for(knd in 1L:val_k) {
-            s_imp = arg_s_impact_mat[[knd]] # mat, m by m
-            t_imp = arg_t_impact_mat[[knd]] # vec
-            t_len_all = length(t_imp)
-            t_imp_len = min(simu_n + 1L, length(t_imp))
+    for(knd in 1L:val_k) {
+        s_imp = arg_s_impact_mat[[knd]] # mat, m by m
+        t_imp = arg_t_impact_mat[[knd]] # vec
+        t_len_all = length(t_imp)
+        t_imp_len = min(simu_n + 1L, t_len_all)
+        x_mat_fr = x_0_mat_combo[, knd, (simu_n - t_imp_len + 2L):(simu_n + 1L)]
 
+        for(ind in 1L:val_m) {
             # create spatial-temporal impact matrix
             st_imp_ind_knd = s_imp[ind, ] %*%
                 t(t_imp[(t_len_all - t_imp_len + 1L):t_len_all])
 
             # compute probability product
-            x_frame_mat[ind, knd] = 1 - prod(
-                1 - x_0_mat_combo[
-                    ,
-                    knd,
-                    (simu_n - t_imp_len + 2L):(simu_n + 1L)
-                ] * st_imp_ind_knd
-            )
+            x_frame_mat[ind, knd] = 1 - prod(1 - x_mat_fr * st_imp_ind_knd)
         }
     }
 
@@ -357,9 +352,7 @@ omg_omega_mat_k1 <<- function(
     colnames(omega_frame_mat) = z_nd_str("n", val_n)
 
     for(jnd in 1L:val_n) {
-        omega_frame_mat[, jnd] =
-            placement_frame[jnd, ] *
-            work_vec_frame_k1[jnd]
+        omega_frame_mat[, jnd] = placement_frame[jnd, ] * work_vec_frame_k1[jnd]
     }
 
     omega_frame_mat # RETURN
@@ -369,13 +362,24 @@ omg_omega_mat_k1 <<- function(
 # BEGIN EVALUATION functions of coverage objective for special case
 
 omg_x_0_vec_k1 <<- function(omega_frame_mat_k1) {
-    x_0_frame_vec = apply(
-        omega_frame_mat_k1,
-        MARGIN = 1,
-        FUN = function(omega_vec) {
-            1 - prod(1 - omega_vec)
-        }
-    ) # RETURN
+    # x_0_frame_vec = apply(
+    #     omega_frame_mat_k1,
+    #     MARGIN = 1,
+    #     FUN = function(omega_vec) {
+    #         1 - prod(1 - omega_vec)
+    #     }
+    # ) # RETURN
+
+    val_m = nrow(omega_frame_mat_k1)
+    x_0_frame_vec = numeric(val_m)
+    names(x_0_frame_vec) = rownames(omega_frame_mat_k1)
+
+    # this for loop is TESTED to be faster than the apply func
+    for(ind in 1L:val_m) {
+        x_0_frame_vec[ind] = 1 - prod(1 - omega_frame_mat_k1[ind, ])
+    }
+
+    x_0_frame_vec # RETURN
 }
 
 omg_x_vec_k1_fr1 <<- function(
@@ -383,16 +387,17 @@ omg_x_vec_k1_fr1 <<- function(
     arg_s_impact_mat_k1,
     arg_t_impact_mat_k1
 ) {
-    x_frame_vec = x_0_frame_vec_k1 # for dimension names
+    x_frame_vec = x_0_frame_vec_k1
     val_m = length(x_frame_vec)
 
-    for(ind in 1L:val_m) {
-        s_imp = arg_s_impact_mat_k1 # mat, m by m
-        t_imp = arg_t_impact_mat_k1 # vec
-        t_len_all = length(t_imp)
+    s_imp = arg_s_impact_mat_k1 # mat, m by m
+    t_imp = arg_t_impact_mat_k1 # vec
+    t_len_all = length(t_imp)
+    x_vec_t = x_0_frame_vec_k1 * t_imp[t_len_all]
 
-        st_imp_ind_knd = s_imp[ind, ] * t_imp[t_len_all]
-        x_frame_vec[ind] = 1 - prod(1 - x_0_frame_vec_k1 * st_imp_ind_knd)
+    # this for loop is TESTED to be faster than the apply func
+    for(ind in 1L:val_m) {
+        x_frame_vec[ind] = 1 - prod(1 - s_imp[ind, ] * x_vec_t)
     }
 
     x_frame_vec # RETURN
@@ -402,11 +407,22 @@ omg_x_vec_k1_fr1 <<- function(
 # END EVALUATION functions of coverage objective for special case
 
 omg_u_vec_k1 <<- function(omega_frame_mat_k1) {
-    u_frame_mat = apply(
-        omega_frame_mat_k1,
-        MARGIN = 1,
-        FUN = local_util_f
-    ) # RETURN
+    # u_frame_vec = apply(
+    #     omega_frame_mat_k1,
+    #     MARGIN = 1,
+    #     FUN = local_util_f
+    # ) # RETURN
+
+    val_m = nrow(omega_frame_mat_k1)
+    u_frame_vec = numeric(val_m)
+    names(u_frame_vec) = rownames(omega_frame_mat_k1)
+
+    # this for loop is TESTED to be faster than the apply func
+    for(ind in 1L:val_m) {
+        u_frame_vec[ind] = local_util_f(omega_frame_mat_k1[ind, ])
+    }
+
+    u_frame_vec # RETURN
 }
 
 } # ENDIF
