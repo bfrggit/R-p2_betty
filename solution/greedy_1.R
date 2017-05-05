@@ -1,7 +1,7 @@
 # greedy_1.R
 #
 # Created: 2017-4-30
-# Updated: 2017-5-3
+# Updated: 2017-5-4
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GREEDY_1_R")) {
