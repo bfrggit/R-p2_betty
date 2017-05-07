@@ -160,7 +160,8 @@ calc_work_mat_greedy_1 <<- function(
 
         max_score = 0
         max_c = NULL
-        proc_t_acc = c(0, 0, 0)
+        proc_t_acc = 0
+        proc_t = proc.time()[3]
         for(jnd in 1L:val_n) { # for each node
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
@@ -176,6 +177,8 @@ calc_work_mat_greedy_1 <<- function(
             # paranoid check
             # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
             # stopifnot(knd_vali == knd_vali_bak)
+
+            ind = which(placement_frame[jnd, ] == 1)[1]
 
             # get candidate of sensors that need their scores updated
             # candidates must be valid
@@ -195,17 +198,13 @@ calc_work_mat_greedy_1 <<- function(
                     #     placement_frame, tmp_w[, knd_cand, drop = FALSE]
                     # )
 
-                    proc_t = proc.time()[3]
-                    ind = which(placement_frame[jnd, ] == 1)[1]
                     tmp_x_0_mat = x_0_mat_init[, knd_cand]
                     tmp_x_0_mat[ind, ] = 1 # local coverage should be 1
-                    proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
 
                     # paranoid check
                     # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega) # slow step
                     # stopifnot(tmp_x_0_mat == tmp_x_0_mat_bak)
 
-                    proc_t = proc.time()[3]
                     tmp_x_cur = omg_x_mat(
                         simu_n              = 0L,
                         x_0_frame_mat       = tmp_x_0_mat,
@@ -214,15 +213,11 @@ calc_work_mat_greedy_1 <<- function(
                         arg_s_impact_mat    = s_impact_mat[knd_cand],   # global
                         arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
                     ) # slow step
-                    proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
                     tmp_x_mat = 1 -
                         (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
                     tmp_x_vbt = omg_xu_obj_type(tmp_x_mat) # vec, dim k
-
-                    proc_t = proc.time()[3]
                     tmp_u_mat = u_mat_init[, knd_cand]
                     tmp_u_mat[ind, ] = local_util_f(1)
-                    proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
                     tmp_u_vbt = omg_xu_obj_type(tmp_u_mat) # vec, dim k
 
                     # paranoid check
@@ -240,33 +235,30 @@ calc_work_mat_greedy_1 <<- function(
                             val_m, val_n,
                             placement_frame, tmp_w[, knd_up_x]
                         )
-                        proc_t = proc.time()[3]
-                        tmp_x_0_vec_k1 = omg_x_0_vec_k1(tmp_omega_k1)
-                        proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
-                        proc_t = proc.time()[3]
+                        tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
+                        tmp_x_0_vec_k1[ind] = 1
+
+                        # paranoid check
+                        # tmp_x_0_vec_k1_bak = omg_x_0_vec_k1(tmp_omega_k1)
+                        # stopifnot(tmp_x_0_vec_k1 == tmp_x_0_vec_k1_bak)
+
                         tmp_x_cur_k1 = omg_x_vec_k1_fr1(
                             x_0_frame_vec_k1    = tmp_x_0_vec_k1,
                             arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
                             arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
                         )
-                        proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
                         tmp_x_vec_k1 = 1 -
                             (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur_k1)
                         tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
                         dx_mat[jnd, knd_up_x] =
                             tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
 
-                        proc_t = proc.time()[3]
-                        if(placement_frame[jnd] ==
-                           placement_frame[last_added_sensor[1]]) {
+                        if(ind == last_added_sensor[3]) {
                             tmp_u_vec_k1 = omg_u_vec_k1(tmp_omega_k1)
-                            proc_t_acc[3] =
-                                proc_t_acc[3] + proc.time()[3] - proc_t
                             tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
                             du_mat[jnd, knd_up_x] =
                                 tmp_u_vbt_k1 - u_vbt_init[knd_up_x]
-                        } else proc_t_acc[3] =
-                            proc_t_acc[3] + proc.time()[3] - proc_t
+                        }
                     }
                 } # ENDIF
 
@@ -289,24 +281,19 @@ calc_work_mat_greedy_1 <<- function(
             for(knd in knd_vali) {
                 if(score[jnd, knd] > max_score && quota_chk[knd]) {
                     max_score = score[jnd, knd]
-                    max_c = c(
-                        jnd = jnd,
-                        knd = knd,
-                        ind = which(placement_frame[jnd, ] == 1)[1]
-                    )
+                    max_c = c(jnd = jnd, knd = knd, ind = ind)
                 }
             }
         } # ENDFOR
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
+        proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
 
-        if(verbose && any(proc_t_acc >= 1e-2)){
+        if(verbose && any(proc_t_acc >= 2e-2)){
             cat(
                 sprintf("    Iteration sum = %d,", num_chosen),
-                sprintf("proc_t = %.0f %.0f %.0f msec",
-                    1000 * proc_t_acc[1],
-                    1000 * proc_t_acc[2],
-                    1000 * proc_t_acc[3]
+                sprintf("proc_t = %.0f msec",
+                    1000 * proc_t_acc[1]
                 )
             )
             if(is.null(max_c)) {
