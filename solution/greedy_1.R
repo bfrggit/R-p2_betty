@@ -231,10 +231,6 @@ calc_work_mat_greedy_1 <<- function(
                     knd_up_x = last_added_sensor[2]
                     if(is.finite(score[jnd, knd_up_x])) {
                         # compute obj using single-case func
-                        tmp_omega_k1 = omg_omega_mat_k1(
-                            val_m, val_n,
-                            placement_frame, tmp_w[, knd_up_x]
-                        )
                         tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
                         tmp_x_0_vec_k1[ind] = 1
 
@@ -254,6 +250,10 @@ calc_work_mat_greedy_1 <<- function(
                             tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
 
                         if(ind == last_added_sensor[3]) {
+                            tmp_omega_k1 = omg_omega_mat_k1(
+                                val_m, val_n,
+                                placement_frame, tmp_w[, knd_up_x]
+                            )
                             tmp_u_vec_k1 = omg_u_vec_k1(tmp_omega_k1)
                             tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
                             du_mat[jnd, knd_up_x] =
