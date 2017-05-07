@@ -18,7 +18,7 @@ lockBinding("num_offset_2", globalenv())
 lockBinding("cell_len_x", globalenv())
 lockBinding("cell_len_y", globalenv())
 
-num_nodes = 50L # 100L
+num_nodes = 100L
 num_cells = num_cells_1 * num_cells_2
 num_types = 10L
 lockBinding("num_nodes", globalenv())
@@ -39,7 +39,7 @@ t_imp_threshold = 1e-4
 
 # general simulation SETTINGS
 t_frame = 60L
-duration = 120L # 10800L
+duration = 180L # 10800L
 lockBinding("t_frame", globalenv())
 lockBinding("duration", globalenv())
 

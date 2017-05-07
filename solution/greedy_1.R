@@ -40,7 +40,7 @@ calc_work_mat_greedy_1 <<- function(
     colnames(mat_w) = z_nd_str("d", val_k)
 
     # override verbose msg
-    # verbose = FALSE
+    verbose = FALSE
 
     # prepare data for quick access
     num_sensor = sum(capacity_mat)
@@ -49,8 +49,13 @@ calc_work_mat_greedy_1 <<- function(
     duration_frames = dim(placement_roll)[3] - 1L
     mat_score_zero = mat_w # for dimension names, contents are disregarded
     xu_mat_zero = matrix(0, nrow = val_m, ncol = val_k)
-    rownames(xu_mat_zero) = z_nd_str("c", val_m)
-    colnames(xu_mat_zero) = z_nd_str("d", val_k)
+    xu_mat_ninf = matrix(-Inf, nrow = val_m, ncol = val_k)
+    xu_mat_fals = matrix(FALSE, nrow = val_m, ncol = val_k)
+    rownames(xu_mat_zero) = rownames(xu_mat_ninf) = rownames(xu_mat_fals) =
+        z_nd_str("c", val_m)
+    colnames(xu_mat_zero) = colnames(xu_mat_ninf) = colnames(xu_mat_fals) =
+        z_nd_str("d", val_k)
+    placement_vec = placement_frame %*% (1L:val_m)
 
     # adaptive data quota
     if(simu_n <= 0L) {
@@ -90,14 +95,20 @@ calc_work_mat_greedy_1 <<- function(
     dimnames(omega_init)[[2]] = z_nd_str("n", val_n)
     dimnames(omega_init)[[3]] = z_nd_str("d", val_k)
 
+    # initial score and delta obj
     score = ifelse(capacity_mat > 0, NaN, -Inf)
-    dx_mat = ifelse(capacity_mat > 0, 0, -Inf)
-    du_mat = dx_mat
+    # dx_mat = ifelse(capacity_mat > 0, 0, -Inf)
+    # du_mat = dx_mat
     # dy_vec = ifelse(rowSums(capacity_mat) > 0, 1, +Inf)
+
+    # initial delta obj for cells
+    dx_mcl = xu_mat_ninf # delta obj mat for cells
+    du_mcl = xu_mat_ninf
 
     # loop until all sensors (on all nodes) are active,
     #            maximum score is not positive, or
     #            data quota is used up
+    proc_t_acc = 0
     last_added_sensor = NULL
     num_chosen = 0L
     if(verbose) cat("...", "\n")
@@ -112,8 +123,8 @@ calc_work_mat_greedy_1 <<- function(
             ind = last_added_sensor[3]  # cell index of node jnd
 
             score[jnd, knd] = -Inf
-            dx_mat[jnd, knd] = -Inf
-            du_mat[jnd, knd] = -Inf
+            # dx_mat[jnd, knd] = -Inf
+            # du_mat[jnd, knd] = -Inf
 
             # update omega
             omega_init[ind, jnd, knd] = 1
@@ -157,124 +168,196 @@ calc_work_mat_greedy_1 <<- function(
         }
         x_vbt_init = omg_xu_obj_type(x_mat_init)
         u_vbt_init = omg_xu_obj_type(u_mat_init)
+        dx_mcf = xu_mat_fals
+        du_mcf = xu_mat_fals
 
+        proc_t_res = 0
         max_score = 0
         max_c = NULL
-        proc_t_acc = 0
-        proc_t = proc.time()[3]
         for(jnd in 1L:val_n) { # for each node
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
             tmp_w[jnd, ] = capacity_mat[jnd, ]
 
+            # it is very important to know where the last added sensor is
+            # ind = which(placement_frame[jnd, ] == 1)[1]
+            ind = placement_vec[jnd]
+
             # get list of valid sensors to compare scores
             # active sensors in mat_w are not valid
             # only valid sensors can be activated
-            knd_vali = which(is.finite(score[jnd, ]) | is.nan(score[jnd, ]))
+            vec_vali = is.finite(score[jnd, ]) | is.nan(score[jnd, ])
+            knd_vali = which(vec_vali)
             num_vali = length(knd_vali)
             if(num_vali <= 0L) next
+            knd_vl_x = which(vec_vali & !dx_mcf[ind, ])
+            knd_vl_u = which(vec_vali & !du_mcf[ind, ])
 
             # paranoid check
             # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
             # stopifnot(knd_vali == knd_vali_bak)
 
-            ind = which(placement_frame[jnd, ] == 1)[1]
-
             # get candidate of sensors that need their scores updated
             # candidates must be valid
             if(is.null(last_added_sensor) || jnd == last_added_sensor[1]) {
                 knd_cand = knd_vali
+                knd_cd_x = knd_vl_x
+                knd_cd_u = knd_vl_u
             } else {
                 knd_cand = last_added_sensor[2]
                 if(!is.finite(score[jnd, knd_cand])) knd_cand = integer(0)
+                if(last_added_sensor[2] %in% knd_vl_x) {
+                    knd_cd_x = last_added_sensor[2]
+                } else knd_cd_x = integer(0)
+                if(last_added_sensor[2] %in% knd_vl_u) {
+                    knd_cd_u = last_added_sensor[2]
+                } else knd_cd_u = integer(0)
             }
             num_cand = length(knd_cand)
+            num_cd_x = length(knd_cd_x)
+            num_cd_u = length(knd_cd_u)
 
+            proc_t = proc.time()[3]
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
-                    # compute obj
-                    # tmp_omega = omg_omega_mat(
-                    #     val_m, val_n, num_cand,
-                    #     placement_frame, tmp_w[, knd_cand, drop = FALSE]
-                    # )
+                    # compute delta x for cells
+                    if(num_cd_x > 0L) {
+                        tmp_x_0_mat = x_0_mat_init[, knd_cd_x, drop = FALSE]
+                        tmp_x_0_mat[ind, ] = 1
+                        tmp_x_cur = omg_x_mat(
+                            simu_n              = 0L,
+                            x_0_frame_mat       = tmp_x_0_mat,
+                            arg_x_0_mat_history = array(0,
+                                dim = c(val_m, num_cd_x, 1L)),
+                            arg_s_impact_mat    = s_impact_mat[knd_cd_x],
+                            arg_t_impact_mat    = t_impact_mat[knd_cd_x]
+                        )
+                        tmp_x_mat = 1 -
+                            (1 - x_mat_prev[, knd_cd_x]) * (1 - tmp_x_cur)
+                        tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
+                        dx_mcl[ind, knd_cd_x] = tmp_x_vbt - x_vbt_init[knd_cd_x]
+                        dx_mcf[ind, knd_cd_x] = TRUE
+                    }
 
-                    tmp_x_0_mat = x_0_mat_init[, knd_cand]
-                    tmp_x_0_mat[ind, ] = 1 # local coverage should be 1
+                    # compute delta u for cells
+                    if(num_cd_u > 0L) {
+                        tmp_u_mat = u_mat_init[, knd_cd_u, drop = FALSE]
+                        tmp_u_mat[ind, ] = local_util_f(1)
+                        tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
+                        du_mcl[ind, knd_cd_u] = tmp_u_vbt - u_vbt_init[knd_cd_u]
+                        du_mcf[ind, knd_cd_u] = TRUE
+                    }
 
-                    # paranoid check
-                    # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega) # slow step
-                    # stopifnot(tmp_x_0_mat == tmp_x_0_mat_bak)
-
-                    tmp_x_cur = omg_x_mat(
-                        simu_n              = 0L,
-                        x_0_frame_mat       = tmp_x_0_mat,
-                        arg_x_0_mat_history = array(0,
-                            dim = c(val_m, num_cand, 1L)),
-                        arg_s_impact_mat    = s_impact_mat[knd_cand],   # global
-                        arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
-                    ) # slow step
-                    tmp_x_mat = 1 -
-                        (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
-                    tmp_x_vbt = omg_xu_obj_type(tmp_x_mat) # vec, dim k
-                    tmp_u_mat = u_mat_init[, knd_cand]
-                    tmp_u_mat[ind, ] = local_util_f(1)
-                    tmp_u_vbt = omg_xu_obj_type(tmp_u_mat) # vec, dim k
-
-                    # paranoid check
-                    # tmp_u_mat_bak = omg_u_mat(tmp_omega) # slow step
-                    # stopifnot(tmp_u_mat == tmp_u_mat_bak)
-
-                    # compute delta obj
-                    dx_mat[jnd, knd_cand] = tmp_x_vbt - x_vbt_init[knd_cand]
-                    du_mat[jnd, knd_cand] = tmp_u_vbt - u_vbt_init[knd_cand]
+                    # compute in old fashion for paranoid check
+                    # tmp_x_0_mat_bak = x_0_mat_init[, knd_cand]
+                    # tmp_x_0_mat_bak[ind, ] = 1 # local coverage should be 1
+                    # tmp_x_cur_bak = omg_x_mat(
+                    #     simu_n              = 0L,
+                    #     x_0_frame_mat       = tmp_x_0_mat_bak,
+                    #     arg_x_0_mat_history = array(0,
+                    #         dim = c(val_m, num_cand, 1L)),
+                    #     arg_s_impact_mat    = s_impact_mat[knd_cand], # global
+                    #     arg_t_impact_mat    = t_impact_mat[knd_cand]  # global
+                    # ) # slow step
+                    # tmp_x_mat_bak = 1 -
+                    #     (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur_bak)
+                    # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
+                    # dx_mat[jnd, knd_cand] =
+                    #     tmp_x_vbt_bak - x_vbt_init[knd_cand]
+                    #
+                    # tmp_u_mat_bak = u_mat_init[, knd_cand]
+                    # tmp_u_mat_bak[ind, ] = local_util_f(1)
+                    # tmp_u_vbt_bak = omg_xu_obj_type(tmp_u_mat_bak)
+                    # du_mat[jnd, knd_cand] =
+                    #     tmp_u_vbt_bak - u_vbt_init[knd_cand]
                 } else { # following selection
                     knd_up_x = last_added_sensor[2]
                     if(is.finite(score[jnd, knd_up_x])) {
                         # compute obj using single-case func
-                        tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
-                        tmp_x_0_vec_k1[ind] = 1
+                        # tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
+                        # tmp_x_0_vec_k1[ind] = 1
+                        # tmp_x_cur_k1 = omg_x_vec_k1_fr1(
+                        #     x_0_frame_vec_k1    = tmp_x_0_vec_k1,
+                        #     arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
+                        #     arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
+                        # )
+                        # tmp_x_vec_k1 = 1 -
+                        #     (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur_k1)
+                        # tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
+                        # dx_mat[jnd, knd_up_x] =
+                        #     tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
 
-                        # paranoid check
-                        # tmp_x_0_vec_k1_bak = omg_x_0_vec_k1(tmp_omega_k1)
-                        # stopifnot(tmp_x_0_vec_k1 == tmp_x_0_vec_k1_bak)
-
-                        tmp_x_cur_k1 = omg_x_vec_k1_fr1(
-                            x_0_frame_vec_k1    = tmp_x_0_vec_k1,
-                            arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
-                            arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
-                        )
-                        tmp_x_vec_k1 = 1 -
-                            (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur_k1)
-                        tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
-                        dx_mat[jnd, knd_up_x] =
-                            tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
-
-                        if(ind == last_added_sensor[3]) {
-                            tmp_omega_k1 = omg_omega_mat_k1(
-                                val_m, val_n,
-                                placement_frame, tmp_w[, knd_up_x]
+                        # compute delta x for cells
+                        if(knd_up_x %in% knd_cd_x) {
+                            tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
+                            tmp_x_0_vec_k1[ind] = 1
+                            tmp_x_cur_k1 = omg_x_vec_k1_fr1(
+                                x_0_frame_vec_k1    = tmp_x_0_vec_k1,
+                                arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
+                                arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
                             )
+                            tmp_x_vec_k1 = 1 -
+                                (1 - x_mat_prev[, knd_up_x]) *
+                                (1 - tmp_x_cur_k1)
+                            tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
+                            dx_mcl[ind, knd_up_x] =
+                                tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
+                            dx_mcf[ind, knd_up_x] = TRUE
+                        }
+
+                        # if(ind == last_added_sensor[3]) {
+                        #     tmp_omega_k1 = omg_omega_mat_k1(
+                        #         val_m, val_n,
+                        #         placement_frame, tmp_w[, knd_up_x]
+                        #     )
+                        #     tmp_u_vec_k1 = omg_u_vec_k1(tmp_omega_k1)
+                        #     tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
+                        #     du_mat[jnd, knd_up_x] =
+                        #         tmp_u_vbt_k1 - u_vbt_init[knd_up_x]
+                        # }
+
+                        # compute delta u for cells
+                        if(ind == last_added_sensor[3] &&
+                           knd_up_x %in% knd_cd_u) {
+                            tmp_omega_k1 = omega_init[, , knd_up_x]
+                            tmp_omega_k1[ind, jnd] = 1
+
+                            # paranoid check
+                            # tmp_omega_k1_bak = omg_omega_mat_k1(
+                            #     val_m, val_n,
+                            #     placement_frame, tmp_w[, knd_up_x]
+                            # )
+                            # stopifnot(tmp_omega_k1 == tmp_omega_k1_bak)
+
                             tmp_u_vec_k1 = omg_u_vec_k1(tmp_omega_k1)
                             tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
-                            du_mat[jnd, knd_up_x] =
+                            du_mcl[ind, knd_up_x] =
                                 tmp_u_vbt_k1 - u_vbt_init[knd_up_x]
+                            du_mcf[ind, knd_up_x] = TRUE
                         }
                     }
+                    if(jnd == last_added_sensor[1]) score_update = TRUE
                 } # ENDIF
+                # paranoid check
+                # stopifnot(dx_mat[jnd, knd_cand] == dx_mcl[ind, knd_cand])
+                # stopifnot(du_mat[jnd, knd_cand] == du_mcl[ind, knd_cand])
 
                 # compute delta obj
-                delta_x_t = dx_mat[jnd, knd_cand]
-                delta_u_t = du_mat[jnd, knd_cand]
+                # delta_x_t = dx_mat[jnd, knd_cand]
+                # delta_u_t = du_mat[jnd, knd_cand]
+                delta_x_t = dx_mcl[ind, knd_cand]
+                delta_u_t = du_mcl[ind, knd_cand]
                 delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
                 delta_d_t = data_type_specs$rate[knd_cand]
 
                 # compute score
-                score[jnd, knd_cand] = (
+                score[jnd, knd_cand] = score_new = (
                     (gamma_x * delta_x_t + gamma_u * delta_u_t) *
                         data_type_specs$weight[knd_cand] +
                         gamma_y * delta_y
                 ) / delta_d_t
             } # ENDIF
+            proc_t_res = proc_t_res + proc.time()[3] - proc_t
 
             # update maximum valid score
             quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
@@ -287,13 +370,13 @@ calc_work_mat_greedy_1 <<- function(
         } # ENDFOR
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
-        proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
+        proc_t_acc = proc_t_acc + proc_t_res
 
-        if(verbose && any(proc_t_acc >= 2e-2)){
+        if(verbose && proc_t_res >= 2e-2){
             cat(
                 sprintf("    Iteration sum = %d,", num_chosen),
                 sprintf("proc_t = %.0f msec",
-                    1000 * proc_t_acc[1]
+                    1000 * proc_t_res
                 )
             )
             if(is.null(max_c)) {
@@ -314,7 +397,10 @@ calc_work_mat_greedy_1 <<- function(
     # print(score)
     if(verbose) {
         cat(
-            sprintf("    Iteration end = %d", num_chosen),
+            sprintf("    Iteration end = %d,", num_chosen),
+            sprintf("proc_t = %.0f msec",
+                    1000 * proc_t_acc
+            ),
             "...", ""
         )
     }
