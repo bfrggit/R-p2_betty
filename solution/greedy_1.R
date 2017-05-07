@@ -1,7 +1,7 @@
 # greedy_1.R
 #
 # Created: 2017-4-30
-# Updated: 2017-5-5
+# Updated: 2017-5-7
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GREEDY_1_R")) {
@@ -189,6 +189,7 @@ calc_work_mat_greedy_1 <<- function(
 
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
+                    # compute obj
                     # tmp_omega = omg_omega_mat(
                     #     val_m, val_n, num_cand,
                     #     placement_frame, tmp_w[, knd_cand, drop = FALSE]
