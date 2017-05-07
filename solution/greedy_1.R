@@ -174,8 +174,8 @@ calc_work_mat_greedy_1 <<- function(
             if(num_vali <= 0L) next
 
             # paranoid check
-            knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
-            stopifnot(knd_vali == knd_vali_bak)
+            # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
+            # stopifnot(knd_vali == knd_vali_bak)
 
             # get candidate of sensors that need their scores updated
             # candidates must be valid
