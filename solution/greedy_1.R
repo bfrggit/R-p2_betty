@@ -189,14 +189,21 @@ calc_work_mat_greedy_1 <<- function(
 
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
-                    # compute obj
-                    tmp_omega = omg_omega_mat(
-                        val_m, val_n, num_cand,
-                        placement_frame, tmp_w[, knd_cand, drop = FALSE]
-                    )
+                    # tmp_omega = omg_omega_mat(
+                    #     val_m, val_n, num_cand,
+                    #     placement_frame, tmp_w[, knd_cand, drop = FALSE]
+                    # )
+
                     proc_t = proc.time()[3]
-                    tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
+                    ind = which(placement_frame[jnd, ] == 1)[1]
+                    tmp_x_0_mat = x_0_mat_init[, knd_cand]
+                    tmp_x_0_mat[ind, ] = 1 # local coverage should be 1
                     proc_t_acc[1] = proc_t_acc[1] + proc.time()[3] - proc_t
+
+                    # paranoid check
+                    # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega) # slow step
+                    # stopifnot(tmp_x_0_mat == tmp_x_0_mat_bak)
+
                     proc_t = proc.time()[3]
                     tmp_x_cur = omg_x_mat(
                         simu_n              = 0L,
@@ -207,12 +214,19 @@ calc_work_mat_greedy_1 <<- function(
                         arg_t_impact_mat    = t_impact_mat[knd_cand]    # global
                     ) # slow step
                     proc_t_acc[2] = proc_t_acc[2] + proc.time()[3] - proc_t
-                    tmp_x_mat = 1 - (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
-                    tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)  # vec, dim k
+                    tmp_x_mat = 1 -
+                        (1 - x_mat_prev[, knd_cand]) * (1 - tmp_x_cur)
+                    tmp_x_vbt = omg_xu_obj_type(tmp_x_mat) # vec, dim k
+
                     proc_t = proc.time()[3]
-                    tmp_u_mat = omg_u_mat(tmp_omega)        # slow step
+                    tmp_u_mat = u_mat_init[, knd_cand]
+                    tmp_u_mat[ind, ] = local_util_f(1)
                     proc_t_acc[3] = proc_t_acc[3] + proc.time()[3] - proc_t
-                    tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)  # vec, dim k
+                    tmp_u_vbt = omg_xu_obj_type(tmp_u_mat) # vec, dim k
+
+                    # paranoid check
+                    # tmp_u_mat_bak = omg_u_mat(tmp_omega) # slow step
+                    # stopifnot(tmp_u_mat == tmp_u_mat_bak)
 
                     # compute delta obj
                     dx_mat[jnd, knd_cand] = tmp_x_vbt - x_vbt_init[knd_cand]
