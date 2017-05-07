@@ -40,7 +40,7 @@ calc_work_mat_greedy_1 <<- function(
     colnames(mat_w) = z_nd_str("d", val_k)
 
     # override verbose msg
-    verbose = FALSE
+    # verbose = FALSE
 
     # prepare data for quick access
     num_sensor = sum(capacity_mat)
@@ -81,10 +81,11 @@ calc_work_mat_greedy_1 <<- function(
             arg_t_impact_mat    = t_impact_mat      # global
         )
     }
+    x_vbt_prev = omg_xu_obj_type(x_mat_prev)
 
     # initial val of obj maintained in loops
     x_0_mat_init = xu_mat_zero
-    x_mat_init = x_mat_prev
+    # x_mat_init = x_mat_prev
     u_mat_init = xu_mat_zero
     y_vec_init = omg_y_vec(mat_w)
     d_vec_init = omg_d_vec(data_type_specs, mat_w)
@@ -104,6 +105,7 @@ calc_work_mat_greedy_1 <<- function(
     # initial delta obj for cells
     dx_mcl = xu_mat_ninf # delta obj mat for cells
     du_mcl = xu_mat_ninf
+    x_vbt_rec = xu_mat_zero
 
     # loop until all sensors (on all nodes) are active,
     #            maximum score is not positive, or
@@ -130,14 +132,14 @@ calc_work_mat_greedy_1 <<- function(
             omega_init[ind, jnd, knd] = 1
             # omega_mask = omega_init[, , knd, drop = FALSE]
 
-            # update coverage
-            x_0_mat_init[ind, knd] = 1
-            x_vec_mask = omg_x_vec_k1_fr1(
-                x_0_frame_vec_k1 = x_0_mat_init[, knd],
-                arg_s_impact_mat_k1 = s_impact_mat[[knd]],
-                arg_t_impact_mat_k1 = t_impact_mat[[knd]]
-            )
-            x_mat_init[, knd] = 1 - (1 - x_mat_prev[, knd]) * (1 - x_vec_mask)
+            # update coverage, alternative approach
+            # x_0_mat_init[ind, knd] = 1
+            # x_vec_mask = omg_x_vec_k1_fr1(
+            #     x_0_frame_vec_k1 = x_0_mat_init[, knd],
+            #     arg_s_impact_mat_k1 = s_impact_mat[[knd]],
+            #     arg_t_impact_mat_k1 = t_impact_mat[[knd]]
+            # )
+            # x_mat_init[, knd] = 1 - (1 - x_mat_prev[, knd]) * (1 - x_vec_mask)
 
             # paranoid check
             # x_0_mat_mask_bak = omg_x_0_mat(omega_mask)
@@ -153,6 +155,10 @@ calc_work_mat_greedy_1 <<- function(
             # stopifnot(x_vec_mask == x_mat_mask_bak)
             # stopifnot(x_mat_init[, knd] == x_vec_init_bak)
 
+            # update coverage
+            x_0_mat_init[ind, knd] = 1
+            x_vbt_init[knd] = x_vbt_rec[ind, knd]
+
             # update util, using simplified func of objective_multi
             # only util of type knd in cell ind is affected
             # u_mat_mask = local_util_f(omega_mask[ind, , 1L])
@@ -165,13 +171,19 @@ calc_work_mat_greedy_1 <<- function(
 
             # update d
             d_val_init = d_val_init + data_type_specs$rate[knd]
+        } else {
+            x_vbt_init = x_vbt_prev
         }
-        x_vbt_init = omg_xu_obj_type(x_mat_init)
+        # paranoid check
+        # x_vbt_init_bak = omg_xu_obj_type(x_mat_init)
+        # stopifnot(x_vbt_init == x_vbt_init_bak)
+
         u_vbt_init = omg_xu_obj_type(u_mat_init)
         dx_mcf = xu_mat_fals
         du_mcf = xu_mat_fals
 
         proc_t_res = 0
+        proc_t = proc.time()[3]
         max_score = 0
         max_c = NULL
         for(jnd in 1L:val_n) { # for each node
@@ -217,7 +229,6 @@ calc_work_mat_greedy_1 <<- function(
             num_cd_x = length(knd_cd_x)
             num_cd_u = length(knd_cd_u)
 
-            proc_t = proc.time()[3]
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
                     # compute delta x for cells
@@ -237,6 +248,7 @@ calc_work_mat_greedy_1 <<- function(
                         tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
                         dx_mcl[ind, knd_cd_x] = tmp_x_vbt - x_vbt_init[knd_cd_x]
                         dx_mcf[ind, knd_cd_x] = TRUE
+                        x_vbt_rec[ind, knd_cd_x] = tmp_x_vbt
                     }
 
                     # compute delta u for cells
@@ -303,6 +315,7 @@ calc_work_mat_greedy_1 <<- function(
                             dx_mcl[ind, knd_up_x] =
                                 tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
                             dx_mcf[ind, knd_up_x] = TRUE
+                            x_vbt_rec[ind, knd_up_x] = tmp_x_vbt_k1
                         }
 
                         # if(ind == last_added_sensor[3]) {
@@ -357,7 +370,6 @@ calc_work_mat_greedy_1 <<- function(
                         gamma_y * delta_y
                 ) / delta_d_t
             } # ENDIF
-            proc_t_res = proc_t_res + proc.time()[3] - proc_t
 
             # update maximum valid score
             quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
@@ -370,6 +382,7 @@ calc_work_mat_greedy_1 <<- function(
         } # ENDFOR
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
+        proc_t_res = proc_t_res + proc.time()[3] - proc_t
         proc_t_acc = proc_t_acc + proc_t_res
 
         if(verbose && proc_t_res >= 2e-2){
