@@ -78,6 +78,7 @@ calc_work_mat_greedy_1 <<- function(
     }
 
     # initial val of obj maintained in loops
+    x_0_mat_init = xu_mat_zero
     x_mat_init = x_mat_prev
     u_mat_init = xu_mat_zero
     y_vec_init = omg_y_vec(mat_w)
@@ -114,23 +115,38 @@ calc_work_mat_greedy_1 <<- function(
             dx_mat[jnd, knd] = -Inf
             du_mat[jnd, knd] = -Inf
 
-            # update coverage
+            # update omega
             omega_init[ind, jnd, knd] = 1
-            omega_mask = omega_init[, , knd, drop = FALSE]
-            x_mat_mask = omg_x_mat(
-                simu_n              = 0L,
-                x_0_frame_mat       = omg_x_0_mat(omega_mask),
-                arg_x_0_mat_history = array(0, dim = c(val_m, 1L, 1L)),
-                arg_s_impact_mat    = s_impact_mat[knd],    # should be a list
-                arg_t_impact_mat    = t_impact_mat[knd]     # should be a list
-            ) # m by k, k = 1
-            x_mat_init[, knd] = 1 - (1 - x_mat_prev[, knd]) * (1 - x_mat_mask)
+            # omega_mask = omega_init[, , knd, drop = FALSE]
+
+            # update coverage
+            x_0_mat_init[ind, knd] = 1
+            x_vec_mask = omg_x_vec_k1_fr1(
+                x_0_frame_vec_k1 = x_0_mat_init[, knd],
+                arg_s_impact_mat_k1 = s_impact_mat[[knd]],
+                arg_t_impact_mat_k1 = t_impact_mat[[knd]]
+            )
+            x_mat_init[, knd] = 1 - (1 - x_mat_prev[, knd]) * (1 - x_vec_mask)
+
+            # paranoid check
+            # x_0_mat_mask_bak = omg_x_0_mat(omega_mask)
+            # x_mat_mask_bak = omg_x_mat(
+            #     simu_n              = 0L,
+            #     x_0_frame_mat       = x_0_mat_mask_bak,
+            #     arg_x_0_mat_history = array(0, dim = c(val_m, 1L, 1L)),
+            #     arg_s_impact_mat    = s_impact_mat[knd],    # should be a list
+            #     arg_t_impact_mat    = t_impact_mat[knd]     # should be a list
+            # ) # m by k, k = 1
+            # x_vec_init_bak = 1 - (1 - x_mat_prev[, knd]) * (1 - x_mat_mask_bak)
+            # stopifnot(x_0_mat_init[, knd] == x_0_mat_mask_bak)
+            # stopifnot(x_vec_mask == x_mat_mask_bak)
+            # stopifnot(x_mat_init[, knd] == x_vec_init_bak)
 
             # update util, using simplified func of objective_multi
             # only util of type knd in cell ind is affected
-            # u_mat_mask = local_util_f(placement_frame[, ind] * mat_w[, knd])
-            u_mat_mask = local_util_f(omega_mask[ind, , 1L])
-            u_mat_init[ind, knd] = u_mat_mask
+            # u_mat_mask = local_util_f(omega_mask[ind, , 1L])
+            # u_mat_init[ind, knd] = u_mat_mask
+            u_mat_init[ind, knd] = local_util_f(omega_init[ind, , knd])
 
             # update y
             # only activation state of node jnd is affected
@@ -139,41 +155,8 @@ calc_work_mat_greedy_1 <<- function(
             # update d
             d_val_init = d_val_init + data_type_specs$rate[knd]
         }
-
-        # paranoid check
-        # omega_init_bak = omg_omega_mat(
-        #     val_m, val_n, val_k,
-        #     placement_frame = placement_frame,
-        #     work_mat_frame  = mat_w
-        # ) # m by n by k
-        # if(simu_n > 0L) {
-        #     x_mat_init_bak = omg_x_mat(
-        #         simu_n              = simu_n,
-        #         x_0_frame_mat       = omg_x_0_mat(omega_init_bak),
-        #         arg_x_0_mat_history = x_0_mat_history,
-        #         arg_s_impact_mat    = s_impact_mat,
-        #         arg_t_impact_mat    = t_impact_mat
-        #     ) # m by k
-        # } else {
-        #     x_mat_init_bak = omg_x_mat(
-        #         simu_n              = simu_n,
-        #         x_0_frame_mat       = omg_x_0_mat(omega_init_bak),
-        #         arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-        #         arg_s_impact_mat    = s_impact_mat,
-        #         arg_t_impact_mat    = t_impact_mat
-        #     ) # m by k
-        # }
-        # u_mat_init_bak = omg_u_mat(omega_init_bak)
-        # stopifnot(abs(x_mat_init - x_mat_init_bak) < 1e-14)
-        # stopifnot(abs(u_mat_init - u_mat_init_bak) < 1e-14)
-
         x_vbt_init = omg_xu_obj_type(x_mat_init)
         u_vbt_init = omg_xu_obj_type(u_mat_init)
-
-        # paranoid verification, part 1
-        # score_old = score
-        # dx_mat_old = dx_mat
-        # du_mat_old = du_mat
 
         max_score = 0
         max_c = NULL
@@ -191,12 +174,11 @@ calc_work_mat_greedy_1 <<- function(
             if(num_vali <= 0L) next
 
             # paranoid check
-            # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
-            # stopifnot(knd_vali == knd_vali_bak)
+            knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
+            stopifnot(knd_vali == knd_vali_bak)
 
             # get candidate of sensors that need their scores updated
             # candidates must be valid
-            # knd_cand = knd_vali
             if(is.null(last_added_sensor) || jnd == last_added_sensor[1]) {
                 knd_cand = knd_vali
             } else {
@@ -204,7 +186,6 @@ calc_work_mat_greedy_1 <<- function(
                 if(!is.finite(score[jnd, knd_cand])) knd_cand = integer(0)
             }
             num_cand = length(knd_cand)
-            # if(num_cand <= 0L) next
 
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
@@ -260,26 +241,6 @@ calc_work_mat_greedy_1 <<- function(
                         dx_mat[jnd, knd_up_x] =
                             tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
 
-                        # compute obj using original func
-                        # tmp_omega = omg_omega_mat(
-                        #     val_m, val_n, 1L,
-                        #     placement_frame, tmp_w[, knd_up_x, drop = FALSE]
-                        # )
-                        # tmp_x_0_mat = omg_x_0_mat(tmp_omega) # slow step
-                        # tmp_x_cur = omg_x_mat(
-                        #     simu_n              = 0L,
-                        #     x_0_frame_mat       = tmp_x_0_mat,
-                        #     arg_x_0_mat_history =
-                        #         array(0, dim = c(val_m, 1L, 1L)),
-                        #     arg_s_impact_mat    = s_impact_mat[knd_up_x],
-                        #     arg_t_impact_mat    = t_impact_mat[knd_up_x]
-                        # ) # slow step
-                        # tmp_x_mat =
-                        #     1 - (1 - x_mat_prev[, knd_up_x]) * (1 - tmp_x_cur)
-                        # tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
-                        # dx_k1_bak = tmp_x_vbt - x_vbt_init[knd_up_x]
-                        # stopifnot(dx_mat[jnd, knd_up_x] == dx_k1_bak)
-
                         proc_t = proc.time()[3]
                         if(placement_frame[jnd] ==
                            placement_frame[last_added_sensor[1]]) {
@@ -289,22 +250,10 @@ calc_work_mat_greedy_1 <<- function(
                             tmp_u_vbt_k1 = mean(tmp_u_vec_k1)
                             du_mat[jnd, knd_up_x] =
                                 tmp_u_vbt_k1 - u_vbt_init[knd_up_x]
-
-                            # compute obj using original func
-                            # tmp_u_mat = omg_u_mat(tmp_omega)    # slow step
-                            # tmp_u_vbt = omg_xu_obj_type(tmp_u_mat)
-                            # du_k1_bak = tmp_u_vbt - u_vbt_init[knd_up_x]
-                            # stopifnot(du_mat[jnd, knd_up_x] == du_k1_bak)
                         } else proc_t_acc[3] =
                             proc_t_acc[3] + proc.time()[3] - proc_t
                     }
                 } # ENDIF
-                # compute score
-                # score[jnd, knd_cand] = score_vec = (
-                #     (gamma_x * delta_x_t + gamma_u * delta_u_t) *
-                #         data_type_specs$weight[knd_cand] +
-                #         gamma_y * delta_y
-                # ) / delta_d_t
 
                 # compute delta obj
                 delta_x_t = dx_mat[jnd, knd_cand]
@@ -320,46 +269,6 @@ calc_work_mat_greedy_1 <<- function(
                 ) / delta_d_t
             } # ENDIF
 
-            # paranoid check, compute backup obj from tmp_w
-            # tmp_omega_bak = omg_omega_mat(
-            #     val_m, val_n, val_k,
-            #     placement_frame, tmp_w
-            # )
-            # tmp_x_0_mat_bak = omg_x_0_mat(tmp_omega_bak)
-            # tmp_x_cur_bak = omg_x_mat(
-            #     simu_n              = 0L,
-            #     x_0_frame_mat       = tmp_x_0_mat_bak,
-            #     arg_x_0_mat_history = array(0, dim = c(val_m, val_k, 1L)),
-            #     arg_s_impact_mat    = s_impact_mat, # global
-            #     arg_t_impact_mat    = t_impact_mat  # global
-            # ) # slow step
-            # tmp_x_mat_bak = 1 - (1 - x_mat_prev) * (1 - tmp_x_cur_bak)
-            # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
-            # tmp_u_mat_bak = omg_u_mat(tmp_omega_bak)
-            # tmp_u_vbt_bak = omg_xu_obj_type(tmp_u_mat_bak)
-
-            # paranoid check, computer backup score
-            # dx_t_bak = tmp_x_vbt_bak - x_vbt_init
-            # du_t_bak = tmp_u_vbt_bak - u_vbt_init
-            # dy_bak = (1 - y_vec_init[jnd]) / val_m / val_k
-            # s_vc_bak = ((gamma_x * dx_t_bak + gamma_u * du_t_bak) *
-            #     data_type_specs$weight + gamma_y * dy_bak
-            # ) / data_type_specs$rate
-            # stopifnot(abs(score[jnd, knd_vali] - s_vc_bak[knd_vali]) < 1e-14)
-
-            # update maximum valid score, alternative approach
-            # for(knd in knd_vali) {
-            #     if(score[jnd, knd] > max_score &&
-            #        d_val_init + data_type_specs$rate[knd] <= data_quota) {
-            #         max_score = score[jnd, knd]
-            #         max_c = c(
-            #             jnd = jnd,
-            #             knd = knd,
-            #             ind = which(placement_frame[jnd, ] == 1)[1]
-            #         )
-            #     }
-            # }
-
             # update maximum valid score
             quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
             for(knd in knd_vali) {
@@ -373,41 +282,6 @@ calc_work_mat_greedy_1 <<- function(
                 }
             }
         } # ENDFOR
-
-        # paranoid verification, part 2
-        # which sensor scores have been updated
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.finite(score) == is.nan(score_old))
-        #     stopifnot(is.infinite(score) == is.infinite(score_old))
-        # } else {
-        #     stopifnot(is.finite(score) <= is.finite(score_old))
-        #     neq_ls = which((score == score_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 1] == last_added_sensor[1] |
-        #               neq_ls[, 2] == last_added_sensor[2])
-        # }
-
-        # paranoid verification, part 2, x alternative
-        # which delta_x eval have been updated
-        # stopifnot(is.finite(dx_mat) == is.finite(dx_mat_old))
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.infinite(dx_mat) == is.infinite(dx_mat_old))
-        # } else {
-        #     neq_ls = which((dx_mat == dx_mat_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 2] == last_added_sensor[2])
-        # }
-
-        # paranoid verification, part 2, u alternative
-        # which delta_u eval have been updated
-        # stopifnot(is.finite(du_mat) == is.finite(du_mat_old))
-        # if(is.null(last_added_sensor)) {
-        #     stopifnot(is.infinite(du_mat) == is.infinite(du_mat_old))
-        # } else {
-        #     neq_ls = which((du_mat == du_mat_old) == FALSE, arr.ind = TRUE)
-        #     stopifnot(neq_ls[, 2] == last_added_sensor[2] &
-        #               placement_frame[neq_ls[, 1]] ==
-        #                   placement_frame[last_added_sensor[1]])
-        # }
-
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
 
