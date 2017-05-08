@@ -209,8 +209,10 @@ calc_work_mat_greedy_1 <<- function(
             knd_vali = which(vec_vali)
             num_vali = length(knd_vali)
             if(num_vali <= 0L) next
-            knd_vl_x = which(vec_vali & !dx_mcf[ind, ])
-            knd_vl_u = which(vec_vali & !du_mcf[ind, ])
+            vec_vl_x = vec_vali & !dx_mcf[ind, ]
+            vec_vl_u = vec_vali & !du_mcf[ind, ]
+            knd_vl_x = which(vec_vl_x)
+            knd_vl_u = which(vec_vl_u)
 
             # paranoid check
             # knd_vali_bak = which(tmp_w[jnd, ] - mat_w[jnd, ] > 0)
@@ -223,13 +225,15 @@ calc_work_mat_greedy_1 <<- function(
                 knd_cd_x = knd_vl_x
                 knd_cd_u = knd_vl_u
             } else {
-                knd_cand = last_added_sensor[2]
-                if(!is.finite(score[jnd, knd_cand])) knd_cand = integer(0)
-                if(last_added_sensor[2] %in% knd_vl_x) {
-                    knd_cd_x = last_added_sensor[2]
+                knl = last_added_sensor[2]
+                if(is.finite(score[jnd, knl])) {
+                    knd_cand = knl
+                } else knd_cand = integer(0)
+                if(vec_vl_x[knl]) {
+                    knd_cd_x = knl
                 } else knd_cd_x = integer(0)
-                if(last_added_sensor[2] %in% knd_vl_u) {
-                    knd_cd_u = last_added_sensor[2]
+                if(vec_vl_u[knl]) {
+                    knd_cd_u = knl
                 } else knd_cd_u = integer(0)
             }
             num_cand = length(knd_cand)
@@ -393,11 +397,10 @@ calc_work_mat_greedy_1 <<- function(
         # stopifnot(num_chosen == sum(mat_w))
         proc_t_acc = proc_t_acc + proc_t_res
 
-        if(verbose && any(proc_t_res >= 2e-2)){
+        if(verbose && any(proc_t_res >= 4e-2)){
             cat(
                 sprintf("    Iteration sum = %d,", num_chosen),
-                sprintf("proc_t = %.0f %.0f %.0f msec",
-                    1000 * proc_t_res[3],
+                sprintf("proc_t = %.0f %.0f msec",
                     1000 * proc_t_res[2],
                     1000 * proc_t_res[1]
                 )

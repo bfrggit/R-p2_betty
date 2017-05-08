@@ -39,7 +39,7 @@ t_imp_threshold = 1e-4
 
 # general simulation SETTINGS
 t_frame = 60L
-duration = 180L # 10800L
+duration = 10800L
 lockBinding("t_frame", globalenv())
 lockBinding("duration", globalenv())
 
@@ -233,3 +233,20 @@ stopifnot(
 cat("\n")
 cat("Objective(s)","\n")
 print(lapply(objective_list, FUN = function(x) {round(x, 4)}))
+save(
+    obj_x_history, obj_u_history,
+    objective_list, objective_history, objective_avg_history,
+    num_cells_1, num_cells_2,
+    cell_len_x, cell_len_y,
+    num_offset_1, num_offset_2,
+    num_nodes, num_cells, num_types, num_static,
+    val_k_gas, val_k_audio, val_k_photo, val_k_wifi, weight_types,
+    num_gas_mob, p_audio_mob, p_photo_mob, p_photo_static,
+    gamma_x, gamma_u, gamma_y,
+    t_frame, duration,
+    data_file,
+    grid,
+    local_util_f,
+    calc_work_mat_f,
+    file = "test_data/greedy_1_user_locations_full.RData"
+)
