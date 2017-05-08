@@ -421,7 +421,7 @@ calc_work_mat_greedy_1 <<- function(
     if(verbose) {
         cat(
             sprintf("    Iteration end = %d,", num_chosen),
-            sprintf("proc_t = %.0f %.0f %.0f %.0f msec",
+            sprintf("proc_t = %.0f %.0f %.0f msec",
                     1000 * proc_t_acc[3],
                     1000 * proc_t_acc[2],
                     1000 * proc_t_acc[1]
