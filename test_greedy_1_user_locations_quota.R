@@ -248,5 +248,5 @@ save(
     grid,
     local_util_f,
     calc_work_mat_f,
-    file = "test_data/greedy_1_user_locations_full.RData"
+    file = "test_data/greedy_1_user_locations_quota.RData"
 )
