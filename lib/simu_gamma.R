@@ -1,7 +1,7 @@
 # simu_gamma.R
 #
 # Created: 2017-4-23
-# Updated: 2017-5-3
+# Updated: 2017-5-8
 #  Author: Charles Zhu
 #
 if(!exists("EX_SIMU_GAMMA_R")) {
@@ -147,7 +147,8 @@ simulate_gamma <<- function(
             data_quota          = data_quota,
             verbose             = verbose
         )
-        if(verbose) cat(sprintf("%.0f", 1000 * (proc.time()[3] - proc_t)), "")
+        t_cal = proc.time()[3] - proc_t
+        if(verbose) cat(sprintf("%.0f", 1000 * t_cal), "")
         work_mat_history[, , simu_n + 1L] = work_mat
 
         # calculate objective function values and keep track of them
@@ -167,8 +168,8 @@ simulate_gamma <<- function(
             work_mat_history    = work_mat_history,
             verbose             = verbose
         )
-        if(verbose)
-            cat(sprintf("%.0f", 1000 * (proc.time()[3] - proc_t)), "msec\n")
+        t_obj = proc.time()[3] - proc_t
+        if(verbose) cat(sprintf("%.0f", 1000 * t_obj), "msec\n")
 
         if(rich_return) {
             if(simu_n <= 0L) {
@@ -188,10 +189,17 @@ simulate_gamma <<- function(
                 )
                 colnames(obj_u_history) <<- names(objective_result$u_by_type)
                 rownames(obj_u_history) <<- rownames(objective_history)
+                proc_t_history <<- matrix(
+                    0,
+                    ncol = 2,
+                    nrow = nrow(objective_history)
+                )
+                colnames(proc_t_history) <<- c("cal", "obj")
             }
             objective_frame = objective_result$general
             obj_x_history[simu_n + 1L, ] <<- objective_result$x_by_type
             obj_u_history[simu_n + 1L, ] <<- objective_result$u_by_type
+            proc_t_history[simu_n + 1L, ] <<- c(t_cal, t_obj)
         } else {
             if(simu_n <= 0L) {
                 stopifnot(is.numeric(objective_result))
@@ -217,7 +225,9 @@ simulate_gamma <<- function(
         x_by_type_avg = colSums(obj_x_history) / (duration_frames + 1L),
         x_by_type_dev = apply(obj_x_history, MARGIN = 2, FUN = sd),
         u_by_type_avg = colSums(obj_u_history) / (duration_frames + 1L),
-        u_by_type_dev = apply(obj_u_history, MARGIN = 2, FUN = sd)
+        u_by_type_dev = apply(obj_u_history, MARGIN = 2, FUN = sd),
+        proc_t_avg = colSums(proc_t_history) / (duration_frames + 1L),
+        proc_t_dev = apply(proc_t_history, MARGIN = 2, FUN = sd)
     ) # RETURN
 }
 
