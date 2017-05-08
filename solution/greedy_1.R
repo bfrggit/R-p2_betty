@@ -1,7 +1,7 @@
 # greedy_1.R
 #
 # Created: 2017-4-30
-# Updated: 2017-5-7
+# Updated: 2017-5-8
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GREEDY_1_R")) {
@@ -107,16 +107,22 @@ calc_work_mat_greedy_1 <<- function(
     du_mcl = xu_mat_ninf
     x_vbt_rec = xu_mat_zero
 
+    #-----------------------------------------------------------------------
+    # all lines above together have been tested to take about 20 msec to run
+
     # loop until all sensors (on all nodes) are active,
     #            maximum score is not positive, or
     #            data quota is used up
-    proc_t_acc = 0
+    proc_t_acc = c(0, 0, 0)
     last_added_sensor = NULL
     num_chosen = 0L
     if(verbose) cat("...", "\n")
     while(num_chosen < num_sensor) {
         # paranoid check
         # stopifnot(num_chosen == sum(mat_w))
+
+        proc_t_res = c(0, 0, 0)
+        proc_t = proc.time()[3]
 
         # update obj to reflect last added sensor
         if(!is.null(last_added_sensor)) {
@@ -181,12 +187,13 @@ calc_work_mat_greedy_1 <<- function(
         u_vbt_init = omg_xu_obj_type(u_mat_init)
         dx_mcf = xu_mat_fals
         du_mcf = xu_mat_fals
+        proc_t_res[3] = proc_t_res[3] + proc.time()[3] - proc_t
 
-        proc_t_res = 0
-        proc_t = proc.time()[3]
         max_score = 0
         max_c = NULL
         for(jnd in 1L:val_n) { # for each node
+            proc_t = proc.time()[3]
+
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
             tmp_w[jnd, ] = capacity_mat[jnd, ]
@@ -228,7 +235,8 @@ calc_work_mat_greedy_1 <<- function(
             num_cand = length(knd_cand)
             num_cd_x = length(knd_cd_x)
             num_cd_u = length(knd_cd_u)
-
+            proc_t_res[2] = proc_t_res[2] + proc.time()[3] - proc_t
+            proc_t = proc.time()[3]
             if(num_cand > 0L) {
                 if(is.null(last_added_sensor)){ # first selection
                     # compute delta x for cells
@@ -379,17 +387,19 @@ calc_work_mat_greedy_1 <<- function(
                     max_c = c(jnd = jnd, knd = knd, ind = ind)
                 }
             }
+            proc_t_res[1] = proc_t_res[1] + proc.time()[3] - proc_t
         } # ENDFOR
         last_added_sensor = max_c
         # stopifnot(num_chosen == sum(mat_w))
-        proc_t_res = proc_t_res + proc.time()[3] - proc_t
         proc_t_acc = proc_t_acc + proc_t_res
 
-        if(verbose && proc_t_res >= 2e-2){
+        if(verbose && any(proc_t_res >= 2e-2)){
             cat(
                 sprintf("    Iteration sum = %d,", num_chosen),
-                sprintf("proc_t = %.0f msec",
-                    1000 * proc_t_res
+                sprintf("proc_t = %.0f %.0f %.0f msec",
+                    1000 * proc_t_res[3],
+                    1000 * proc_t_res[2],
+                    1000 * proc_t_res[1]
                 )
             )
             if(is.null(max_c)) {
@@ -411,8 +421,10 @@ calc_work_mat_greedy_1 <<- function(
     if(verbose) {
         cat(
             sprintf("    Iteration end = %d,", num_chosen),
-            sprintf("proc_t = %.0f msec",
-                    1000 * proc_t_acc
+            sprintf("proc_t = %.0f %.0f %.0f %.0f msec",
+                    1000 * proc_t_acc[3],
+                    1000 * proc_t_acc[2],
+                    1000 * proc_t_acc[1]
             ),
             "...", ""
         )
