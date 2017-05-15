@@ -1,3 +1,8 @@
+# prep_placement_mob_300_4.R
+#
+# Created: 2017-5-14
+#  Author: Charles Zhu
+#
 rm(list = ls())
 
 require(methods)
@@ -55,6 +60,6 @@ for(seed in seeds) {
         user_locations_list_traces,
         user_locations_static,
         data_file,
-        file = sprintf("placement_RData/mob_300_4_%d.RData", seed)
+        file = sprintf("prep_RData/mob_300_4_%d.RData", seed)
     )
 }
