@@ -6,3 +6,5 @@
 .DS_Store
 
 /tmp/
+/traces_RData/*.RData
+
