@@ -22,7 +22,7 @@ lockBinding("num_static", globalenv())
 
 gamma_x = 1
 gamma_u = 1
-gamma_y = -1.5
+gamma_y = -1.2
 
 t_imp_threshold = 1e-4
 
