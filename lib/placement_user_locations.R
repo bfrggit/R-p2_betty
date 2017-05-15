@@ -304,11 +304,9 @@ create_placement_user_locations <<- function(
 
     # pick traces for mobile nodes
     if(num_mob > 0L) {
-        user_locations_id_map[1:num_mob] <<- sort(
-            sample(
-                x = u_ids,
-                size = num_mob
-            )
+        user_locations_id_map[1:num_mob] <<- sample(
+            x = u_ids,
+            size = num_mob
         )
         for(jnd in 1L:num_mob) {
             user_locations_list_traces[[jnd]] <<- data.matrix(summarise(

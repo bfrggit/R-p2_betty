@@ -7,4 +7,5 @@
 
 /tmp/
 /traces_RData/*.RData
+/placement_RData/*.RData
 
