@@ -7,34 +7,16 @@ rm(list = ls())
 
 require(methods)
 
-# simulation CONSTANTS
-num_cells_1 = 7L
-num_cells_2 = 9L
-cell_len_x = 500
-cell_len_y = 500
-num_offset_1 = -5 / cell_len_y
-num_offset_2 = -5 / cell_len_x
+load("prep_RData/grid_mob_one.RData")
 
 # general simulation SETTINGS
 t_frame = 60L
-duration = 10800L
+duration = 1L # not necessary
 num_nodes = 1800L
 num_cells = num_cells_1 * num_cells_2
 num_types = 1L # not necessary
 num_static = 1200L
 data_file = "traces_RData/mob_300_4.RData"
-
-# CONSTRUCT test grid using parameters
-source("lib/square_cell_grid.R")
-
-grid = SquareCellGrid(
-    num_cells_1,
-    num_cells_2,
-    cell_len_x,
-    cell_len_y,
-    num_offset_1,
-    num_offset_2
-)
 
 source("lib/placement_user_locations.R")
 
