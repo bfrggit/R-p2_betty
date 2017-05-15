@@ -69,7 +69,7 @@ make_t_impact_f_type_vec(kcl = col_type_lt[1]:col_type_rt[1],
 make_t_impact_f_type_vec(kcl = col_type_lt[2]:col_type_rt[2],
                          type = "step", step = get_t_imp_f(5))
 make_t_impact_f_type_vec(kcl = col_type_lt[3],
-                         type = "step", step = get_t_imp_f(10))
+                         type = "step", step = get_t_imp_f(60))
 make_t_impact_f_type_vec(kcl = col_type_lt[3] + 1L,
                          type = "step", step = get_t_imp_f(30))
 make_t_impact_f_type_vec(kcl = col_type_lt[4]:col_type_rt[4],
