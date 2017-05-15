@@ -36,38 +36,18 @@ lockBinding("duration", globalenv())
 load("prep_RData/impact_multi.RData")
 lockBinding("data_type_spec_df", globalenv())
 
-num_gas_mob = 4L
-lockBinding("num_gas_mob", globalenv())
-
-p_audio_mob = c(audio_1 = 0.6)
-p_photo_mob = c(photo_1 = 0.9, photo_2 = 0.3)
-p_photo_static = c(photo_1 = 0, photo_2 = 0.7)
-lockBinding("p_audio_mob", globalenv())
-lockBinding("p_photo_mob", globalenv())
-lockBinding("p_photo_static", globalenv())
-
 stopifnot(is.integer(num_cells))
 
-get_t_imp_f = function(t_const) {as.integer(ceiling(t_const * 60 / t_frame))}
-col_type_lt = cumsum(c(1L, val_k_gas, val_k_audio, val_k_photo))
-col_type_rt = cumsum(c(val_k_gas, val_k_audio, val_k_photo, val_k_wifi))
-
 # CREATE test case elements
-capacity_mat = get_capacity_mat_multi(
-    val_n           = num_nodes,
-    num_static      = num_static,
-    val_k_gas       = val_k_gas,
-    val_k_audio     = val_k_audio,
-    val_k_photo     = val_k_photo,
-    val_k_wifi      = val_k_wifi,
-    num_gas_mob     = num_gas_mob,
-    p_audio_mob     = p_audio_mob,
-    p_photo_mob     = p_photo_mob,
-    p_photo_static  = p_photo_static
+num_mob = num_nodes - num_static
+load("prep_RData/impact_multi_capacity_sm_4.RData")
+capacity_mat = rbind(
+    capacity_mobile[1L:num_mob, ],
+    capacity_static[1L:num_static, ]
 )
 local_util_f = get_util_f_type("log_sum")
 
-load("prep_RData/mob_300_4_1.RData")
+load("prep_RData/mob_300_4_4.RData")
 create_placement_f = get_recreate_placement_user_locations_f(num_static)
 update_placement_f = update_placement_user_locations
 get_placement_f = get_placement_user_locations
