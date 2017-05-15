@@ -1,5 +1,7 @@
 rm(list = ls())
 
+require(methods)
+
 # simulation CONSTANTS
 num_cells_1 = 7L
 num_cells_2 = 9L
