@@ -20,7 +20,7 @@ lockBinding("num_cells", globalenv())
 num_static = as.integer(num_nodes * 0.6) # 60L
 lockBinding("num_static", globalenv())
 
-data_quota = 1000000L
+data_quota = 500000L
 lockBinding("data_quota", globalenv())
 
 gamma_x = 1
