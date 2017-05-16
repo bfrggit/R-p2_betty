@@ -131,5 +131,5 @@ save(
     grid,
     local_util_f,
     calc_work_mat_f,
-    file = "test_data/test_greedy_1_mob_300_4_4_quota.RData"
+    file = "test_data/greedy_1_mob_300_4_4_quota.RData"
 )
