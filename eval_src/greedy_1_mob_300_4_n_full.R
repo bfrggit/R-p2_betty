@@ -54,7 +54,11 @@ get_placement_f = get_placement_user_locations
 source("lib/calc_work_fill_1.R")
 source("lib/objective_multi.R")
 
-calc_work_mat_f = calc_work_mat_fill_1
+calc_work_mat_f = get_calc_work_mat_greedy_1_f(
+    gamma_x = gamma_x,
+    gamma_u = gamma_u,
+    gamma_y = gamma_y
+)
 get_objective_f = get_objective_multi_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
@@ -190,5 +194,5 @@ save(
     grid,
     local_util_f,
     calc_work_mat_f,
-    file = "eval_data/fill_1_mob_300_4_n.RData"
+    file = "eval_data/greedy_1_mob_300_4_n_full.RData"
 )
