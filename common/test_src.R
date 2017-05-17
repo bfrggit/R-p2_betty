@@ -12,9 +12,9 @@ stopifnot(exists("user_locations_list_traces"))
 stopifnot(exists("user_locations_static"))
 stopifnot(exists("calc_work_mat_f"))
 
-cat("Testing...")
+cat("Testing...", "\n")
 
-require(methods)
+suppressPackageStartupMessages(require(methods))
 
 source("lib/square_cell_grid.R")
 source("lib/element_multi.R")

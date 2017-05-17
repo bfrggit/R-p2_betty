@@ -2,7 +2,7 @@ cat("Cleaning up the environment...", "\n")
 rm(list = ls())
 cat("\n")
 
-require(methods)
+suppressPackageStartupMessages(require(methods))
 
 source("lib/square_cell_grid.R")
 source("lib/element_multi.R")
