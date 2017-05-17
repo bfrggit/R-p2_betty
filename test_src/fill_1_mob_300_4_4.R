@@ -2,7 +2,7 @@ cat("Cleaning up the environment...", "\n")
 rm(list = ls())
 cat("\n")
 
-require(methods)
+suppressPackageStartupMessages(require(methods))
 
 source("lib/square_cell_grid.R")
 source("lib/element_multi.R")
@@ -24,7 +24,7 @@ data_quota = +Inf
 lockBinding("data_quota", globalenv())
 
 gamma_x = 1
-gamma_u = 1
+gamma_u = 0.4 / log(2)
 gamma_y = -1.2
 
 t_imp_threshold = 1e-4
