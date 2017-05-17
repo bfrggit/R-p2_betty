@@ -13,14 +13,15 @@ stopifnot(exists("mobility_data_format") && is.character(mobility_data_format))
 stopifnot(exists("save_to_file") && is.character(save_to_file))
 
 if(!exists("num_loops")) num_loops <<- 5L
-num_rounds <<- length(num_nodes)
+num_rounds <<- length(num_mob)
 
 cat("Evaluating...", "\n")
 
 suppressPackageStartupMessages(require(methods))
 
 # CREATE test case elements
-num_mob <<- num_nodes - num_static
+unlockBinding("num_nodes", globalenv())
+num_nodes <<- num_mob + num_static
 
 source("lib/objective_multi.R")
 
@@ -88,11 +89,13 @@ for(pnd in 1L:num_loops) {
         if(num_mob[rnd] > 0L) {
             capacity_mat = rbind(
                 capacity_mobile[1L:num_mob[rnd], ],
-                capacity_static[1L:num_static[rnd], ]
+                capacity_static[1L:num_static, ]
             )
-        } else capacity_mat = capacity_static[1L:num_static[rnd], ]
+        } else {
+            capacity_mat = capacity_static[1L:num_static, ]
+        }
         create_placement_f = get_recreate_placement_user_locations_f(
-            num_static = num_static[rnd]
+            num_static = num_static
         )
         cat(
             "Simulation",
