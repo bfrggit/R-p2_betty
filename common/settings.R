@@ -19,7 +19,7 @@ if(!exists("num_cells"))        num_cells <<- num_cells_1 * num_cells_2
 if(!exists("num_static"))       num_static <<- as.integer(num_nodes * 0.6)
 if(!exists("data_quota"))       data_quota <<- +Inf
 if(!exists("gamma_x"))          gamma_x <<- 1
-if(!exists("gamma_u"))          gamma_u <<- 1
+if(!exists("gamma_u"))          gamma_u <<- 0.4 / log(2)
 if(!exists("gamma_y"))          gamma_y <<- -1.2
 if(!exists("t_imp_threshold"))  t_imp_threshold <<- 1e-4
 lockBinding("num_nodes", globalenv())
