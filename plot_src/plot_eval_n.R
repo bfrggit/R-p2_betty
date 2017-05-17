@@ -59,6 +59,7 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     ) + geom_point(
         aes(y = value, color = series, shape = series), size = 2
     ) + scale_y_continuous(
+        limits = c(0, 1.2),
         sec.axis = sec_axis(
             ~ . * 2e+7,
             name = "Data generation rate (byte / sec)"
