@@ -9,7 +9,7 @@ if(!exists("EX_PLACEMENT_USER_LOCATIONS_R")) {
     source("lib/basic.R")
     source("lib/square_cell_grid.R")
 
-    library(dplyr)
+    suppressPackageStartupMessages(library(dplyr))
 
 # this func requires additional parameters and needs a encapsulation getter
 # additional parameters: data_file, grid, num_static
