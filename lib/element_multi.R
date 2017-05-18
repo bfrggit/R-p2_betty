@@ -1,7 +1,7 @@
 # element_multi.R
 #
 # Created: 2017-4-23
-# Updated: 2017-4-30
+# Updated: 2017-5-17
 #  Author: Charles Zhu
 #
 if(!exists("EX_ELEMENT_MULTI_R")) {
@@ -146,19 +146,51 @@ get_capacity_mat_multi <<- function(
     )
 
     # SPAWN static nodes
-    mat_c[rows_static, col_type_lt["gas"]:col_type_rt["gas"]] = 1
-    mat_c[rows_static, col_type_lt["audio"]:col_type_rt["audio"]] = 1
-    mat_c[rows_static, col_type_lt["photo"]:col_type_rt["photo"]] = matrix(
-        ifelse(
-            runif(num_static * val_k_photo, min = 0, max = 1) > p_photo_static,
-            0, 1
-        ), ncol = val_k_photo, byrow = TRUE
-    )
+    if(num_static > 0L) {
+        mat_c[rows_static, col_type_lt["gas"]:col_type_rt["gas"]] = 1
+        mat_c[rows_static, col_type_lt["audio"]:col_type_rt["audio"]] = 1
+        mat_c[rows_static, col_type_lt["photo"]:col_type_rt["photo"]] = matrix(
+            ifelse(
+                runif(num_static * val_k_photo, min = 0, max = 1) >
+                    p_photo_static,
+                0, 1
+            ), ncol = val_k_photo, byrow = TRUE
+        )
+    }
 
     # all Wi-Fi sensors present on all nodes
     mat_c[, col_type_lt["wifi"]:col_type_rt["wifi"]] = 1
 
     mat_c # RETURN
+}
+
+# GENERATE sensing capacity matrix for all nodes
+# using same settings for both mobile nodes and static nodes
+#   fixed num of gas sensors are chosen from all candidates
+#   audio and photo sensors present with probability
+#   all Wi-Fi sensors present
+get_capacity_mat_multi_omni <<- function(
+    val_n,
+    val_k_gas,
+    val_k_audio,
+    val_k_photo,
+    val_k_wifi = 1L,            # should be ONE in a normal scenario
+    num_gas,                    # num gas sensors per mobile node
+    p_audio,                    # probability that each audio sensor presents
+    p_photo                     # probability that each photo sensor presents
+) {
+    get_capacity_mat_multi(
+        val_n       = val_n,
+        num_static  = 0L,
+        val_k_gas   = val_k_gas,
+        val_k_audio = val_k_audio,
+        val_k_photo = val_k_photo,
+        val_k_wifi  = val_k_wifi,
+        num_gas_mob = num_gas,
+        p_audio_mob = p_audio,
+        p_photo_mob = p_photo,
+        p_photo_static = numeric(length(p_photo))
+    ) # RETURN
 }
 
 # GENERATE data type specs using num sensors of each type plus weights
