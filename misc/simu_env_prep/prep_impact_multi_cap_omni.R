@@ -57,6 +57,6 @@ for(seed in seeds) {
         capacity_omni,
         num_gas,
         p_audio, p_photo,
-        file = sprintf("prep_RData/impact_multi_capacity_omni_%d.RData", seed)
+        file = sprintf("prep_RData/impact_multi_cap_omni_%d.RData", seed)
     )
 }
