@@ -108,11 +108,18 @@ calc_work_mat_greedy_2 <<- function(
     #-----------------------------------------------------------------------
     # all lines above together have been tested to take about 20 msec to run
 
+    negative_n_0 = numeric(val_k)
+    names(negative_n_0) = z_nd_str("d", val_k)
+
     # loop until all sensors (on all nodes) are active,
     #            maximum score is not positive, or
     #            data quota is used up
     proc_t_acc = c(0, 0, 0)
     last_added_sensor = NULL
+    negative_jnd = NULL
+    negative_acc = NULL
+    negative_ind = negative_n_0
+
     num_chosen = 0L
     if(verbose) cat("...", "\n")
     while(num_chosen < num_sensor) {
@@ -149,11 +156,22 @@ calc_work_mat_greedy_2 <<- function(
         } else {
             x_vbt_init = x_vbt_prev
         }
-
         u_vbt_init = omg_xu_obj_type(u_mat_init)
         dx_mcf = xu_mat_fals
         du_mcf = xu_mat_fals
+        quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
+        knd_chkd = which(quota_chk)
         proc_t_res[3] = proc_t_res[3] + proc.time()[3] - proc_t
+
+        if(verbose){
+            if(length(knd_chkd) <= 0L) {
+                cat(
+                    sprintf("    Iteration sum = %d,", num_chosen),
+                    sprintf("quota reached\n")
+                )
+                break
+            }
+        } else if(length(knd_chkd) <= 0L) break
 
         max_score = 0
         max_c = NULL
@@ -162,6 +180,9 @@ calc_work_mat_greedy_2 <<- function(
 
             # attempt to switch on all sensors on-board
             tmp_w = mat_w
+            if(!is.null(negative_jnd)) {
+                tmp_w[negative_jnd, ] = negative_ind
+            }
             tmp_w[jnd, ] = capacity_mat[jnd, ]
 
             # it is very important to know where the last added sensor is
@@ -279,7 +300,7 @@ calc_work_mat_greedy_2 <<- function(
                 delta_d_t = data_type_specs$rate[knd_cand]
 
                 # compute score
-                score[jnd, knd_cand] = score_new = (
+                score[jnd, knd_cand] = (
                     (gamma_x * delta_x_t + gamma_u * delta_u_t) *
                         data_type_specs$weight[knd_cand] +
                         gamma_y * delta_y
@@ -287,7 +308,7 @@ calc_work_mat_greedy_2 <<- function(
             } # ENDIF
 
             # update maximum valid score
-            quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
+            # quota_chk = (d_val_init + data_type_specs$rate <= this_quota)
             for(knd in knd_vali) {
                 if(score[jnd, knd] > max_score && quota_chk[knd]) {
                     max_score = score[jnd, knd]
@@ -296,8 +317,56 @@ calc_work_mat_greedy_2 <<- function(
             }
             proc_t_res[1] = proc_t_res[1] + proc.time()[3] - proc_t
         } # ENDFOR
+
+        # negative score handler
+        if(is.null(max_c)) {
+            if(is.null(negative_jnd)) {
+                # stopifnot(all(score[, knd_chkd] < 0))
+                # stopifnot(all(y_vec_init[which(
+                #     apply(
+                #         score[, knd_chkd],
+                #         MARGIN = 1,
+                #         FUN = function(vec) {
+                #             any(is.finite(vec))
+                #         }
+                #     )
+                # )] == 0))
+                score_pos = score[, knd_chkd, drop = FALSE] -
+                    matrix(
+                        gamma_y * 1 / data_type_specs$rate[knd_chkd],
+                        nrow = nrow(score), ncol = length(knd_chkd),
+                        byrow = TRUE
+                    )
+                # stopifnot(all(score_pos >= 0 || is.infinite(score_pos)))
+                # stopifnot(any(score_pos >= 0))
+                chk_c = which(score_pos == max(score_pos), arr.ind = TRUE)[1, ]
+                jnc = chk_c[1]
+                knc = knd_chkd[chk_c[2]]
+                inc = placement_vec[jnc]
+                max_c = c(jnd = jnc, knd = knc, ind = inc)
+                max_score = score[jnc, knc]
+                negative_jnd = jnc
+                negative_acc = score[jnc, knc] * data_type_specs$rate[knc]
+                negative_ind[knc] = 1
+            }
+        } else { # positive score handler
+            inc = max_c[3]
+            jnc = max_c[1]
+            knc = max_c[2]
+            if(!is.null(negative_jnd)) {
+                stopifnot(jnc == negative_jnd)
+                negative_acc = negative_acc +
+                    score[jnc, knc] * data_type_specs$rate[knc]
+                negative_ind[knc] = 1
+                if(negative_acc >= 0) {
+                    mat_w[negative_jnd, ] = negative_ind
+                    negative_jnd = NULL
+                    negative_acc = NULL
+                    negative_ind = negative_n_0
+                }
+            } else mat_w[jnc, knc] = 1
+        }
         last_added_sensor = max_c
-        # stopifnot(num_chosen == sum(mat_w))
         proc_t_acc = proc_t_acc + proc_t_res
 
         if(verbose && any(proc_t_res >= 4e-2)){
@@ -313,13 +382,12 @@ calc_work_mat_greedy_2 <<- function(
                 break
             }
             cat(
-                sprintf(", [%d %d %d],", max_c[3], max_c[1], max_c[2]),
+                sprintf(", [%d %d %d],", inc, jnc, knc),
                 sprintf("scr = %.2e\n", max_score)
             )
         } else if(is.null(max_c)) break
 
         # update the solution with the chosen sensor
-        mat_w[max_c[1], max_c[2]] = 1
         num_chosen = num_chosen + 1L
     } # ENDWHILE
 

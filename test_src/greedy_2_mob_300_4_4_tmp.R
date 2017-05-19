@@ -17,6 +17,6 @@ calc_work_mat_f = get_calc_work_mat_greedy_2_f(
     gamma_u = gamma_u,
     gamma_y = gamma_y
 )
-# save_to_file = "tmp/test_greedy_2_mob_300_4_4.RData"
+save_to_file = "tmp/test_greedy_2_mob_300_4_4.RData"
 
 source("common/test_src.R")
