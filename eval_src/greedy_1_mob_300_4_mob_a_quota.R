@@ -10,7 +10,7 @@ num_mob = c(
 	seq(30L, 170L, by = 10L)
 )
 num_static = 30L
-data_quota = 500000L
+data_quota = 3500000L
 capacity_data_format = "prep_RData/impact_multi_capacity_sm_%d.RData"
 mobility_data_format = "prep_RData/mob_300_4_%d.RData"
 
