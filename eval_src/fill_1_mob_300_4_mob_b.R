@@ -9,7 +9,7 @@ num_mob = c(
     seq(0L, 18L, by = 2L),
     seq(20L, 50L, by = 5L)
 )
-capacity_data_format = "prep_RData/impact_multi_capacity_omni_%d.RData"
+capacity_data_format = "prep_RData/impact_multi_cap_omni_%d.RData"
 mobility_data_format = "prep_RData/mob_300_4_%d.RData"
 
 source("common/settings.R")
