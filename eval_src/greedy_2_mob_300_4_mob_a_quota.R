@@ -5,9 +5,9 @@ cat("\n")
 suppressPackageStartupMessages(require(methods))
 
 num_mob = c(
-	seq(0L, 8L, by = 2L),
-	seq(10L, 20L, by = 5L),
-	seq(30L, 170L, by = 10L)
+    seq(0L, 8L, by = 2L),
+    seq(10L, 20L, by = 5L),
+    seq(30L, 170L, by = 10L)
 )
 num_static = 30L
 data_quota = 3500000L
