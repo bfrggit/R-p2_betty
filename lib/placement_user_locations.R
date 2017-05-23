@@ -1,7 +1,7 @@
 # placement_user_locations.R
 #
 # Created: As part of the initial version of the project
-# Updated: 2017-5-16
+# Updated: 2017-5-22
 #  Author: Charles Zhu
 #
 if(!exists("EX_PLACEMENT_USER_LOCATIONS_R")) {
@@ -396,32 +396,66 @@ get_node_x_y_user_locations <<- function(jnd, simu_t) {
     (tr_rt - tr_lt) * (simu_t - t_lt) / (t_rt - t_lt) + tr_lt # RETURN
 }
 
-update_placement_user_locations <<- function(t_frame, simu_n, grid) {
+# update_placement_user_locations <<- function(t_frame, simu_n, grid) {
+#     val_n = dim(placement_user_locations_roll)[1]
+#     simu_t = simu_n * t_frame
+#     duration_frames = dim(placement_user_locations_roll)[3]
+#
+#     stopifnot(simu_n >= 0L && simu_n <= duration_frames)
+#
+#     for(jnd in 1L:val_n) {
+#         jnd_x_y = get_node_x_y_user_locations(jnd, simu_t)
+#         placement_user_locations_roll[
+#             jnd,
+#             x_y_to_cell_num(grid, jnd_x_y[1], jnd_x_y[2]),
+#             simu_n + 1L
+#         ] <<- 1
+#     }
+#
+#     placement_user_locations_roll # RETURN
+# }
+#
+# get_update_placement_user_locations_f <<- function(
+#     grid
+# ) {
+#     function(...) {
+#         update_placement_user_locations(
+#             ...,
+#             grid = grid
+#         )
+#     } # RETURN
+# }
+
+update_placement_user_locations_gear <<- function(t_frame, simu_n, grid, gear) {
     val_n = dim(placement_user_locations_roll)[1]
-    simu_t = simu_n * t_frame
+    path_t = simu_n * t_frame * gear
     duration_frames = dim(placement_user_locations_roll)[3]
 
     stopifnot(simu_n >= 0L && simu_n <= duration_frames)
 
     for(jnd in 1L:val_n) {
-        jnd_x_y = get_node_x_y_user_locations(jnd, simu_t)
+        jnd_x_y = get_node_x_y_user_locations(jnd, path_t)
         placement_user_locations_roll[
             jnd,
             x_y_to_cell_num(grid, jnd_x_y[1], jnd_x_y[2]),
             simu_n + 1L
-        ] <<- 1
+            ] <<- 1
     }
 
     placement_user_locations_roll # RETURN
 }
 
 get_update_placement_user_locations_f <<- function(
-    grid
+    grid, gear = 1
 ) {
+    stopifnot(is.numeric(gear))
+    stopifnot(gear > 0)
+
     function(...) {
-        update_placement_user_locations(
+        update_placement_user_locations_gear(
             ...,
-            grid = grid
+            grid = grid,
+            gear = gear
         )
     } # RETURN
 }
