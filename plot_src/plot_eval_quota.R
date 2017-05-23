@@ -40,7 +40,7 @@ df$quota = df_se$quota = as.integer(rownames(objective_general_avg))
 dm = melt(df[, line_cols], id.vars = "quota", variable.name = "series")
 dm_se = melt(df_se[, line_cols], id.vars = "quota", variable.name = "series")
 dm$se = dm_se$value
-plot_obj = ggplot(data = dm, aes(x = quota)) +
+plot_obj = ggplot(data = dm, aes(x = quota)) + scale_x_log10() +
     xlab("Data quota (byte / sec)") +
     ylab("Objectives") +
     expand_limits(y = 0) +
@@ -55,7 +55,7 @@ plot_obj = ggplot(data = dm, aes(x = quota)) +
             ymin = value - se,
             ymax = value + se,
             color = series
-        ), size = 0.5, width = 4
+        ), size = 0.5, width = log10(max(df$quota) / min(df$quota)) * 0.02
     ) + geom_point(
         aes(y = value, color = series, shape = series), size = 2
     ) + scale_y_continuous(

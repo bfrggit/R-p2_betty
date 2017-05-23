@@ -55,7 +55,7 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
             ymin = value - se,
             ymax = value + se,
             color = series
-        ), size = 0.5, width = 4
+        ), size = 0.5, width = (max(df$nodes) - min(df$nodes)) * 0.02
     ) + geom_point(
         aes(y = value, color = series, shape = series), size = 2
     ) + scale_y_continuous(
