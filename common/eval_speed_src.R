@@ -160,7 +160,7 @@ save(
     num_offset_1, num_offset_2,
     num_nodes, num_cells, num_types, num_static,
     val_k_gas, val_k_audio, val_k_photo, val_k_wifi, weight_types,
-    num_gas_mob, p_audio_mob, p_photo_mob, p_photo_static,
+    num_gas, p_audio, p_photo,
     gamma_x, gamma_u, gamma_y,
     t_frame, duration,
     data_file,
