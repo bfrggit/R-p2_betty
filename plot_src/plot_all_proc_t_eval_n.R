@@ -17,7 +17,8 @@ cut_frame = data.frame(x = c(-Inf, +Inf), y = frame)
 data_files = c(
     "fill_1_%s",
     "greedy_1_%s_quota",
-    "greedy_2_%s_quota"
+    "greedy_2_%s_quota",
+    "greedy_2_%s_full"
 )
 data_f_len = length(data_files)
 data_fr_ls = list()
@@ -53,12 +54,11 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
             ymin = value - se,
             ymax = value + se
         ), width = (max(df$nodes) - min(df$nodes)) * 0.02,
-        size = 0.5,
-        color = "gray20"
+        size = 0.5, color = "gray20", alpha = 0.5
     ) + geom_point(
         aes(y = value, shape = ts, alpha = ts), size = 2, color = "gray20"
     ) + scale_y_continuous(
-        limits = c(0, 60)
+        limits = c(0, 64)
     ) + scale_shape_manual(
         name = pa_sol_name, labels = pa_sol_label, values = pp_sol_shape
     ) + scale_alpha_manual(
@@ -68,7 +68,7 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     ) + annotate(
         "text", label = "Frame", color = "gray40",
         x = 0,
-        y = frame - 60 / 40
+        y = frame - 64 / 40
     )
 cat("Rendering...", "\n")
 

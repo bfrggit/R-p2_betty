@@ -15,7 +15,8 @@ num_loops = 5L
 data_files = c(
     "fill_1_%s",
     "greedy_1_%s_quota",
-    "greedy_2_%s_quota"
+    "greedy_2_%s_quota",
+    "greedy_2_%s_full"
 )
 data_f_len = length(data_files)
 data_fr_ls = list()
@@ -48,7 +49,8 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
             ymin = value - se,
             ymax = value + se,
             color = obj
-        ), size = 0.5, width = (max(df$nodes) - min(df$nodes)) * 0.02
+        ), width = (max(df$nodes) - min(df$nodes)) * 0.02,
+        size = 0.5, alpha = 0.5
     ) + geom_point(
         aes(y = value, color = obj, shape = obj, alpha = ts), size = 2
     ) + scale_y_continuous(
