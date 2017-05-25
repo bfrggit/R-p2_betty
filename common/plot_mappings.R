@@ -52,3 +52,10 @@ pa_sol_alpha                = c(
 lockBinding("pa_sol_label", globalenv())
 lockBinding("pa_sol_linetype", globalenv())
 lockBinding("pa_sol_alpha", globalenv())
+
+pp_sol_shape                = c(
+    "fill_1_%s"             = 1,
+    "greedy_1_%s_quota"     = 6,
+    "greedy_2_%s_quota"     = 7
+)
+lockBinding("pp_sol_shape", globalenv())
