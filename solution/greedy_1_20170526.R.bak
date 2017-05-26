@@ -85,7 +85,7 @@ calc_work_mat_greedy_1 <<- function(
 
     # initial val of obj maintained in loops
     x_0_mat_init = xu_mat_zero
-    x_mat_init = x_mat_prev
+    # x_mat_init = x_mat_prev
     u_mat_init = xu_mat_zero
     y_vec_init = omg_y_vec(mat_w)
     d_vec_init = omg_d_vec(data_type_specs, mat_w)
@@ -135,11 +135,6 @@ calc_work_mat_greedy_1 <<- function(
             omega_init[ind, jnd, knd] = 1
 
             # update coverage
-            # x_0_mat_init is a binary mat
-            if(x_0_mat_init[ind, knd] == 0) {
-                x_mat_init[, knd] = 1 -
-                    (1 - x_mat_init[, knd]) * (1 - s_impact_mat[[knd]][ind, ])
-            }
             x_0_mat_init[ind, knd] = 1
             x_vbt_init[knd] = x_vbt_rec[ind, knd]
 
@@ -160,10 +155,6 @@ calc_work_mat_greedy_1 <<- function(
         dx_mcf = xu_mat_fals
         du_mcf = xu_mat_fals
         proc_t_res[3] = proc_t_res[3] + proc.time()[3] - proc_t
-
-        # paranoid check
-        x_vbt_init_bak = colSums(x_mat_init) / nrow(x_mat_init)
-        stopifnot(all(abs(x_vbt_init - x_vbt_init_bak) < 1e-14))
 
         max_score = 0
         max_c = NULL
@@ -217,32 +208,19 @@ calc_work_mat_greedy_1 <<- function(
                 if(is.null(last_added_sensor)){ # first selection
                     # compute delta x for cells
                     if(num_cd_x > 0L) {
-                        tmp_x_mat = x_mat_init[, knd_cd_x, drop = FALSE]
-                        # stopifnot(x_0_mat_init[ind, knd_cd_x] == 0)
-                        for(knt in 1L:length(knd_cd_x)) {
-                            tmp_x_mat[, knt] = 1 -
-                                (1 - tmp_x_mat[, knt]) *
-                                (1 - s_impact_mat[[knd_cd_x[knt]]][ind, ])
-                        }
+                        tmp_x_0_mat = x_0_mat_init[, knd_cd_x, drop = FALSE]
+                        tmp_x_0_mat[ind, ] = 1
+                        tmp_x_cur = omg_x_mat(
+                            simu_n              = 0L,
+                            x_0_frame_mat       = tmp_x_0_mat,
+                            arg_x_0_mat_history = array(0,
+                                dim = c(val_m, num_cd_x, 1L)),
+                            arg_s_impact_mat    = s_impact_mat[knd_cd_x],
+                            arg_t_impact_mat    = t_impact_mat[knd_cd_x]
+                        )
+                        tmp_x_mat = 1 -
+                            (1 - x_mat_prev[, knd_cd_x]) * (1 - tmp_x_cur)
                         tmp_x_vbt = omg_xu_obj_type(tmp_x_mat)
-
-                        # paranoid check
-                        # tmp_x_0_mat_bak =
-                        #     x_0_mat_init[, knd_cd_x, drop = FALSE]
-                        # tmp_x_0_mat_bak[ind, ] = 1
-                        # tmp_x_cur_bak = omg_x_mat(
-                        #     simu_n              = 0L,
-                        #     x_0_frame_mat       = tmp_x_0_mat_bak,
-                        #     arg_x_0_mat_history = array(0,
-                        #         dim = c(val_m, num_cd_x, 1L)),
-                        #     arg_s_impact_mat    = s_impact_mat[knd_cd_x],
-                        #     arg_t_impact_mat    = t_impact_mat[knd_cd_x]
-                        # )
-                        # tmp_x_mat_bak = 1 -
-                        #     (1 - x_mat_prev[, knd_cd_x]) * (1 - tmp_x_cur_bak)
-                        # tmp_x_vbt_bak = omg_xu_obj_type(tmp_x_mat_bak)
-                        # stopifnot(all(abs(tmp_x_vbt - tmp_x_vbt_bak) < 1e-14))
-
                         dx_mcl[ind, knd_cd_x] = tmp_x_vbt - x_vbt_init[knd_cd_x]
                         dx_mcf[ind, knd_cd_x] = TRUE
                         x_vbt_rec[ind, knd_cd_x] = tmp_x_vbt
@@ -261,30 +239,17 @@ calc_work_mat_greedy_1 <<- function(
                     if(is.finite(score[jnd, knd_up_x])) {
                         # compute delta x for cells
                         if(knd_up_x %in% knd_cd_x) {
-                            tmp_x_vec_k1 = x_mat_init[, knd_up_x]
-                            if(x_0_mat_init[ind, knd_up_x] == 0) {
-                                tmp_x_vec_k1 = 1 -
-                                    (1 - tmp_x_vec_k1) *
-                                    (1 - s_impact_mat[[knd_up_x]][ind, ])
-                            }
+                            tmp_x_0_vec_k1 = x_0_mat_init[, knd_up_x]
+                            tmp_x_0_vec_k1[ind] = 1
+                            tmp_x_cur_k1 = omg_x_vec_k1_fr1(
+                                x_0_frame_vec_k1    = tmp_x_0_vec_k1,
+                                arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]],
+                                arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
+                            )
+                            tmp_x_vec_k1 = 1 -
+                                (1 - x_mat_prev[, knd_up_x]) *
+                                (1 - tmp_x_cur_k1)
                             tmp_x_vbt_k1 = mean(tmp_x_vec_k1)
-
-                            # paranoid check
-                            # tmp_x_0_vec_k1_bak = x_0_mat_init[, knd_up_x]
-                            # tmp_x_0_vec_k1_bak[ind] = 1
-                            # tmp_x_cur_k1_bak = omg_x_vec_k1_fr1(
-                            #     x_0_frame_vec_k1    = tmp_x_0_vec_k1_bak,
-                            #     arg_s_impact_mat_k1 = s_impact_mat[[knd_up_x]]
-                            #   , arg_t_impact_mat_k1 = t_impact_mat[[knd_up_x]]
-                            # )
-                            # tmp_x_vec_k1_bak = 1 -
-                            #     (1 - x_mat_prev[, knd_up_x]) *
-                            #     (1 - tmp_x_cur_k1_bak)
-                            # tmp_x_vbt_k1_bak = mean(tmp_x_vec_k1_bak)
-                            # stopifnot(all(
-                            #     abs(tmp_x_vbt_k1 - tmp_x_vbt_k1_bak) < 1e-4
-                            # ))
-
                             dx_mcl[ind, knd_up_x] =
                                 tmp_x_vbt_k1 - x_vbt_init[knd_up_x]
                             dx_mcf[ind, knd_up_x] = TRUE
