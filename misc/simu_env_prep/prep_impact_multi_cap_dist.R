@@ -8,8 +8,8 @@ rm(list = ls())
 require(methods)
 
 # general simulation SETTINGS
-num_nodes = seq(30L, 200L, by = 10L)
-ref_nodes = 30L
+num_nodes = seq(50L, 200L, by = 6L)
+ref_nodes = 50L
 
 # mode-specific simulation SETTINGS
 val_k_gas   = 6L

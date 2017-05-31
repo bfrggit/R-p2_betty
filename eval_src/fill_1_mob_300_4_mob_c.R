@@ -4,7 +4,7 @@ cat("\n")
 
 suppressPackageStartupMessages(require(methods))
 
-num_nodes = seq(30L, 200L, by = 10L)
+num_nodes = seq(50L, 200L, by = 6L)
 capacity_data_format = "prep_RData/impact_multi_cap_dist_%d.RData"
 mobility_data_format = "prep_RData/mob_300_4_%d.RData"
 
