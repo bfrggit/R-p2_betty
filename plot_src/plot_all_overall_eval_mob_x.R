@@ -35,7 +35,6 @@ exp_set = sprintf("mob_300_4_mob_%s", mob_suffix)
 num_loops = 5L
 trf_scale = 2e+7
 quota = 3.5e+6
-cut_quota = data.frame(x = c(-Inf, +Inf), y = quota/ trf_scale)
 
 # load all data files
 data_files = c(
@@ -70,9 +69,8 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     xlab("Number of mobile nodes") +
     ylab(pa_obj_label["overall"]) +
     expand_limits(y = 0) +
-    geom_line(
-        aes(x = x, y = y),
-        data = cut_quota, color = "gray40"
+    geom_hline(
+        yintercept = quota / trf_scale, color = "gray40"
     ) + geom_line(
         aes(y = value, color = obj, linetype = ts, alpha = ts), size = 1
     ) + geom_errorbar(

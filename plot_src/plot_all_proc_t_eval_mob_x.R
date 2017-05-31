@@ -34,7 +34,6 @@ library(reshape2)
 exp_set = sprintf("mob_300_4_mob_%s", mob_suffix)
 num_loops = 5L
 frame = 60
-cut_frame = data.frame(x = c(-Inf, +Inf), y = frame)
 
 # load all data files
 data_files = c(
@@ -67,9 +66,8 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     xlab("Number of mobile nodes") +
     ylab("Planning time (sec)") +
     expand_limits(y = 0) +
-    geom_line(
-        aes(x = x, y = y),
-        data = cut_frame, color = "gray40"
+    geom_hline(
+        yintercept = frame, color = "gray40"
     ) + geom_line(
         aes(y = value, alpha = ts, color = -value), size = 1
     ) + geom_errorbar(

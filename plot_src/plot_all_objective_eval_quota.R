@@ -8,17 +8,14 @@ library(ggplot2)
 library(reshape2)
 
 # constants
-exp_set = "mob_300_4_n"
+exp_set = "mob_300_4_quota"
 num_loops = 5L
-trf_scale = 2e+7
-quota = 3.5e+6
 
 # load all data files
 data_files = c(
     "fill_1_%s",
     "greedy_1_%s_quota",
-    "greedy_2_%s_quota",
-    "greedy_2_%s_full"
+    "greedy_2_%s_quota"
 )
 data_f_len = length(data_files)
 data_fr_ls = list()
@@ -28,43 +25,35 @@ for(j in 1L:data_f_len){
     cat(sprintf("Processing data file eval = \"%s\"", fn), "\n")
     load(sprintf("eval_data/%s.RData", fn))
 
-    line_cols = c("nodes", "overall", "trf_n")
+    line_cols = c("quota", "nact", "cover", "util")
     df = data.frame(objective_general_avg)
-    df$trf_n = df$traffic / trf_scale
     df_se = data.frame(objective_general_dev) * qnorm(0.975) / sqrt(num_loops)
-    df_se$trf_n = df_se$traffic / trf_scale
-    df$nodes = df_se$nodes = as.integer(rownames(objective_general_avg))
-    dm = melt(df[, line_cols], id.vars = "nodes", variable.name = "obj")
-    dm_se = melt(df_se[, line_cols], id.vars = "nodes", variable.name = "obj")
+    df$quota = df_se$quota = as.numeric(rownames(objective_general_avg))
+    dm = melt(df[, line_cols], id.vars = "quota", variable.name = "obj")
+    dm_se = melt(df_se[, line_cols], id.vars = "quota", variable.name = "obj")
     dm$se = dm_se$value
     dm$ts = data_files[j]
     data_fr_ls[[j]] = dm
 }
 dm = do.call("rbind", data_fr_ls)
 
-plot_obj = ggplot(data = dm, aes(x = nodes)) +
-    xlab("Number of nodes") +
-    ylab(pa_obj_label["overall"]) +
+plot_obj = ggplot(data = dm, aes(x = quota)) + scale_x_log10() +
+    xlab("Data quota (byte / sec)") +
+    ylab("Objectives") +
     expand_limits(y = 0) +
-    geom_hline(
-        yintercept = quota / trf_scale, color = "gray40"
-    ) + geom_line(
+    geom_line(
         aes(y = value, color = obj, linetype = ts, alpha = ts), size = 1
     ) + geom_errorbar(
         aes(
             ymin = value - se,
             ymax = value + se,
             color = obj
-        ), width = (max(df$nodes) - min(df$nodes)) * 0.02,
+        ), width = log10(max(df$quota) / min(df$quota)) * 0.02,
         size = 0.5, alpha = 0.5
     ) + geom_point(
         aes(y = value, color = obj, shape = obj, alpha = ts), size = 2
     ) + scale_y_continuous(
-        limits = c(0, 1.2),
-        sec.axis = sec_axis(
-            ~ . * trf_scale,
-            name = "Data generation rate (byte / sec)"
-        )
+        limits = c(0, 1)
     ) + scale_color_manual(
         name = pa_obj_name, labels = pa_obj_label, values = pa_obj_color
     ) + scale_shape_manual(
@@ -73,16 +62,12 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
         name = pa_sol_name, labels = pa_sol_label, values = pa_sol_linetype
     ) + scale_alpha_manual(
         name = pa_sol_name, labels = pa_sol_label, values = pa_sol_alpha
-    ) + annotate(
-        "text", label = "Quota", color = "gray40",
-        x = 0,
-        y = quota / trf_scale + 1.2 / 40
     )
 cat("Rendering...", "\n")
 
 # plot_obj
 ggsave(
-    filename = sprintf("eval_plot/all_overall_n.pdf"),
+    filename = sprintf("eval_plot/all_objective_quota.pdf"),
     plot = plot_obj,
     device = "pdf",
     width = 8,
