@@ -98,7 +98,7 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
         name = pa_sol_name, labels = pa_sol_label, values = pa_sol_alpha
     ) + annotate(
         "text", label = "Quota", color = "gray40",
-        x = 0,
+        x = min(df$nodes),
         y = quota / trf_scale + 1.2 / 40
     )
 cat("Rendering...", "\n")

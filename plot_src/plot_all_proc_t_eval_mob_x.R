@@ -88,7 +88,7 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
         colors = rainbow(4, start = 0, end = 0.6), guide = FALSE
     ) + annotate(
         "text", label = "Frame", color = "gray40",
-        x = 0,
+        x = min(df$nodes),
         y = frame - 64 / 40
     )
 cat("Rendering...", "\n")
