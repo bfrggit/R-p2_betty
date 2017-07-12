@@ -33,7 +33,7 @@ for(seed in seeds) {
         val_m = num_cells,
         val_k = num_types,
         data_file = data_file,
-        grid = grid,
+        grid = gr,
         num_static = num_static
     )
     save(
