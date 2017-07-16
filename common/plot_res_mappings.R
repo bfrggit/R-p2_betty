@@ -8,10 +8,10 @@ lockBinding("pa_obj_name", globalenv())
 
 pa_obj_label                = c(
     "overall"               = "Overall performance",
-    "traffic"               = "Data generation",
+    "traffic"               = "Data generation (byte / sec)",
     "cover"                 = "Coverage",
     "util"                  = "Utility",
-    "nact"                  = "Active nodes"
+    "nact"                  = "Active nodes normalized"
 )
 lockBinding("pa_obj_label", globalenv())
 
@@ -26,9 +26,9 @@ pa_sol_label                = c(
 )
 pa_sol_linetype             = c(
     "fill_1_%s"             = "11",
-    "greedy_1_%s_quota"     = "42",
+    "greedy_1_%s_quota"     = "solid",
     "greedy_2_%s_quota"     = "solid",
-    "greedy_2_%s_full"      = "1116"
+    "greedy_2_%s_full"      = "11"
 )
 pa_sol_alpha                = c(
     "fill_1_%s"             = 1,

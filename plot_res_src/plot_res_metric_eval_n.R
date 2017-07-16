@@ -7,13 +7,13 @@ args_full   = commandArgs(trailingOnly = FALSE)
 argc        = length(args)
 argc_full   = length(args_full)
 
-if(argc != 5L) {
+if(argc != 4L) {
     if(argc_full > 0L) {
         write(
             paste(c(
                 "Usage:",
                 args_full[1L:(argc_full - argc)],
-                "SUFFIX", "METRIC",
+                "METRIC",
                 "SPARSE", "MODULO", 'LEGEND',
                 "\n"
             ), collapse = " "),
@@ -23,17 +23,15 @@ if(argc != 5L) {
     stop("Invalid argument(s)")
 }
 
-mob_suffix = args[1]
-nom_metric = args[2]
-lockBinding("mob_suffix", globalenv())
+nom_metric = args[1]
 lockBinding("nom_metric", globalenv())
 
 # these two integers define sparsely populated points and error-bar
-par_sparse = as.integer(args[3])
-par_modulo = as.integer(args[4])
-par_legend = as.numeric(args[5])
-stopifnot(par_sparse == as.numeric(args[3]))
-stopifnot(par_modulo == as.numeric(args[4]))
+par_sparse = as.integer(args[2])
+par_modulo = as.integer(args[3])
+par_legend = as.numeric(args[4])
+stopifnot(par_sparse == as.numeric(args[2]))
+stopifnot(par_modulo == as.numeric(args[3]))
 stopifnot(par_sparse > 0L)
 stopifnot(par_modulo >= 0L && par_modulo <= par_sparse)
 stopifnot(par_legend >= 0L && par_legend <= 3L)
@@ -49,7 +47,7 @@ library(reshape2)
 stopifnot(nom_metric %in% names(pa_obj_label))
 
 # constants
-exp_set = sprintf("mob_300_4_mob_%s", mob_suffix)
+exp_set = sprintf("mob_300_4_n")
 num_loops = 5L
 quota = 3.5e+6
 pos_legend = c(par_legend %/% 2L, par_legend - (par_legend %/% 2L) * 2)
@@ -114,11 +112,11 @@ if(nom_metric == "traffic") {
         yintercept = quota, color = "orangered"
     ) + annotate(
         "text", label = "Quota", color = "orangered", size = 5,
-        x = max(df$nodes),
-        y = quota - (
+        x = min(df$nodes),
+        y = quota + (
                 max(dm[dm$obj == "traffic", ]$value) -
                 min(dm[dm$obj == "traffic", ]$value)
-            ) * 4e-2
+            ) * 3e-2
     )
 }
 cat("Rendering...", "\n")
@@ -126,8 +124,8 @@ cat("Rendering...", "\n")
 # plot_obj
 ggsave(
     filename = sprintf(
-        "results/%s_mob_%s_%d-%d.pdf",
-        nom_metric, mob_suffix,
+        "results/%s_n_%d-%d.pdf",
+        nom_metric,
         par_sparse, par_modulo
     ),
     plot = plot_obj,
