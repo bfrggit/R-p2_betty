@@ -109,6 +109,9 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
     ) + res_themes + theme(legend.justification = pos_legend
     ) + theme(legend.position = pos_legend
     )
+if(nom_metric %in% c("nact", "util", "traffic")) {
+    plot_obj = plot_obj + expand_limits(y = 0)
+}
 if(nom_metric == "traffic") {
     plot_obj = plot_obj + geom_hline(
         yintercept = quota, color = "orangered"
@@ -117,7 +120,7 @@ if(nom_metric == "traffic") {
         x = max(df$nodes),
         y = quota - (
                 max(dm[dm$obj == "traffic", ]$value) -
-                min(dm[dm$obj == "traffic", ]$value)
+                min(0, min(dm[dm$obj == "traffic", ]$value))
             ) * 4e-2
     )
 }
