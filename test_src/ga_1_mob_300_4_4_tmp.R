@@ -18,6 +18,6 @@ calc_work_mat_f = get_calc_work_mat_ga_1_f(
     gamma_y = gamma_y,
     seed = 9L
 )
-# save_to_file = "tmp/test_ga_1_mob_300_4_4.RData"
+save_to_file = "tmp/test_ga_1_mob_300_4_4.RData"
 
 source("common/test_src.R")
