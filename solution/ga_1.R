@@ -9,7 +9,7 @@ if(!exists("EX_GA_1_R")) {
     source("lib/basic.R")
     source("lib/objective_multi.R")
 
-    library(GA)
+    suppressPackageStartupMessages(library(GA))
 
 get_fitness_f_ga_1 <<- function(
     mat_w_zero,             # as template for mat_w

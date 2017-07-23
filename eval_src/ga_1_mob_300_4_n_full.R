@@ -28,7 +28,7 @@ stopifnot(x_case == as.numeric(args[1]))
 suppressPackageStartupMessages(require(methods))
 
 num_nodes_all = c(seq(5L, 25L, by = 5L), seq(30L, 200L, by = 10L)) # length = 23
-stopifnot(length(num_nodes_all) < x_case)
+stopifnot(length(num_nodes_all) >= x_case)
 
 num_nodes = num_nodes_all[x_case]
 capacity_data_format = "prep_RData/impact_multi_capacity_sm_%d.RData"
@@ -47,6 +47,6 @@ calc_work_mat_f = get_calc_work_mat_ga_1_f(
     gamma_y = gamma_y,
     seed = 9L
 )
-save_to_file = sprintf("%s/case_%d.RData", out_patb, x_case)
+save_to_file = sprintf("%s/case_%d.RData", out_path, x_case)
 
 source("common/eval_n_src.R")
