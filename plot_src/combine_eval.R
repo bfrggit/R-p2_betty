@@ -87,6 +87,7 @@ rm(list = c(
     "combine_vars",
     "combine_var",
     "combined_var",
-    "eval_prefix"
+    "eval_prefix",
+    "j"
 ))
 save.image(file = sprintf("%s.RData", path_files))
