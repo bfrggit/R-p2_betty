@@ -1,6 +1,7 @@
 # ga_1.R
 #
 # Created: 2017-7-22
+# Updated: 2017-7-26
 #  Coding: Charles Zhu
 #
 if(!exists("EX_GA_1_R")) {
@@ -26,8 +27,10 @@ get_fitness_f_ga_1 <<- function(
         val_n = nrow(mat_w_zero)
         val_k = ncol(mat_w_zero)
 
+        vec_w = numeric(val_n * val_k)
+        vec_w[ga_capa_avail] = chromosome
         mat_w = matrix(
-            data = chromosome,
+            data = vec_w,
             nrow = val_n,
             ncol = val_k,
             byrow = FALSE, dimnames = dimnames(mat_w_zero)
@@ -161,15 +164,21 @@ calc_work_mat_ga_1 <<- function(
     rownames(xu_mat_zero) = z_nd_str("c", val_m)
     colnames(xu_mat_zero) = z_nd_str("d", val_k)
 
-    # generate global data rate vector for constraint check
+    # generate global vectors for constraint check
     if(simu_n <= 0L) {
+        # accquire available sensors from capacity_mat
+        ga_capaci_vec <<- as.vector(capacity_mat)
+        ga_capa_avail <<- which(ga_capaci_vec > 0)
+        # ga_capa_zeros <<- which(ga_capaci_vec == 0)
+
+        # GA will only consider available sensors and ignore the zeros
         ga_data_rates <<- as.vector(
             matrix(
                 rep(data_type_specs$rate, val_n),
                 ncol = val_k,
                 byrow = TRUE
             )
-        )
+        )[ga_capa_avail]
     }
 
     # adaptive data quota
@@ -243,7 +252,7 @@ calc_work_mat_ga_1 <<- function(
     # run GA algorithm
     ga_obj = ga(
         type = "binary",
-        nBits = val_n * val_k,
+        nBits = length(ga_capa_avail), # nBits = val_n * val_k,
         fitness = get_fitness_f_ga_1(
             mat_w_zero      = mat_w_zero,
             data_type_specs = data_type_specs,
@@ -257,8 +266,8 @@ calc_work_mat_ga_1 <<- function(
         population = get_population_f_ga_1(gabin_Population, this_quota),
         crossover = get_crossover_f_ga_1(gabin_spCrossover, this_quota),
         mutation = get_mutation_f_ga_1(gabin_raMutation, this_quota),
-        min = as.vector(mat_w_zero),
-        max = as.vector(capacity_mat),
+        # min = as.vector(mat_w_zero),    # these settings do not work for bin
+        # max = as.vector(capacity_mat),  # these settings do not work for bin
         popSize = ga_pop_size,  # default value = 50
         pcrossover = 0.8,       # default value = 0.8
         pmutation = 0.2,        # default value = 0.1
@@ -276,8 +285,10 @@ calc_work_mat_ga_1 <<- function(
     )
 
     # extract solution from GA object
+    vec_w = numeric(val_n * val_k)
+    vec_w[ga_capa_avail] = ga_obj@solution
     mat_w = matrix(
-        ga_obj@solution,
+        vec_w,
         nrow = val_n,
         ncol = val_k,
         byrow = FALSE,

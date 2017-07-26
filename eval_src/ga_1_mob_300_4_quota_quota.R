@@ -45,6 +45,7 @@ calc_work_mat_f = get_calc_work_mat_ga_1_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
     gamma_y = gamma_y,
+    parallel = 2L,
     seed = 9L
 )
 save_to_file = sprintf("%s/case_%d.RData", out_path, x_case)
