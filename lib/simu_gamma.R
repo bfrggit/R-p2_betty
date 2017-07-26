@@ -1,7 +1,7 @@
 # simu_gamma.R
 #
 # Created: 2017-4-23
-# Updated: 2017-5-8
+# Updated: 2017-7-26
 #  Author: Charles Zhu
 #
 if(!exists("EX_SIMU_GAMMA_R")) {
@@ -149,6 +149,7 @@ simulate_gamma <<- function(
         )
         t_cal = proc.time()[3] - proc_t
         if(verbose) cat(sprintf("%.0f", 1000 * t_cal), "")
+        stopifnot(all(work_mat <= capacity_mat))
         work_mat_history[, , simu_n + 1L] = work_mat
 
         # calculate objective function values and keep track of them
