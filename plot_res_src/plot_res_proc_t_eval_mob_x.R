@@ -54,7 +54,8 @@ data_files = c(
     "fill_1_%s",
     "greedy_1_%s_quota",
     "greedy_2_%s_quota",
-    "greedy_2_%s_full"
+    # "greedy_2_%s_full",
+    "lyap_grd_%s_quota"
 )
 data_f_len = length(data_files)
 data_fr_ls = list()
