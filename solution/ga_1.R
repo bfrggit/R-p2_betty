@@ -82,7 +82,8 @@ get_fitness_f_ga_1 <<- function(
 }
 
 ga_reduce_chromosome = function(chromosome, this_quota) {
-    while(sum(chromosome * ga_data_rates) > this_quota) { # global
+    while(any(chromosome > 0) &&
+        sum(chromosome * ga_data_rates) > this_quota) { # global
         chromosome[sample(which(chromosome > 0), 1L)] = 0
     }
     chromosome # RETURN
@@ -286,7 +287,11 @@ calc_work_mat_ga_1 <<- function(
 
     # extract solution from GA object
     vec_w = numeric(val_n * val_k)
-    vec_w[ga_capa_avail] = ga_obj@solution
+    if(is.matrix(ga_obj@solution)) {
+        vec_w[ga_capa_avail] = ga_obj@solution[1, ]
+    } else if(is.vector(ga_obj@solution)) {
+        vec_w[ga_capa_avail] = ga_obj@solution
+    }
     mat_w = matrix(
         vec_w,
         nrow = val_n,
