@@ -57,9 +57,10 @@ pos_legend = c(par_legend %/% 2L, par_legend - (par_legend %/% 2L) * 2)
 # load all data files
 data_files = c(
     "fill_1_%s",
+    "random_1_%s_quota",
+    "ga_1_%s_quota",
     "greedy_1_%s_quota",
     "greedy_2_%s_quota",
-    # "greedy_2_%s_full",
     "lyap_grd_%s_quota"
 )
 data_f_len = length(data_files)
@@ -113,13 +114,16 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
 if(nom_metric %in% c("nact", "util", "traffic")) {
     plot_obj = plot_obj + expand_limits(y = 0)
 }
+if(nom_metric %in% c("overall", "util", "traffic")) {
+    plot_obj = plot_obj + guides(color = guide_legend(ncol = 2))
+}
 if(nom_metric == "traffic") {
     plot_obj = plot_obj + geom_hline(
         yintercept = quota, color = "orangered"
     ) + annotate(
         "text", label = "Quota", color = "orangered", size = 5,
         x = max(df$nodes),
-        y = quota - (
+        y = quota + (
                 max(dm[dm$obj == "traffic", ]$value) -
                 min(0, min(dm[dm$obj == "traffic", ]$value))
             ) * 4e-2

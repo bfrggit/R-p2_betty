@@ -39,6 +39,8 @@ pos_legend = c(par_legend %/% 2L, par_legend - (par_legend %/% 2L) * 2)
 # load all data files
 data_files = c(
     "fill_1_%s",
+    "random_1_%s_quota",
+    "ga_1_%s_quota",
     "greedy_1_%s_quota",
     "greedy_2_%s_quota",
     "lyap_grd_%s_quota"
@@ -94,7 +96,7 @@ plot_obj = ggplot(data = dm, aes(x = quota)) + scale_x_log10() +
     ) + annotate(
         "text", label = "Frame", color = "orangered", size = 5,
         x = max(df$quota),
-        y = frame - (
+        y = frame + (
                 max(frame, max(dm[dm$obj == "cal", ]$value)) -
                 min(0, min(dm[dm$obj == "cal", ]$value))
             ) * 1.6 / 60

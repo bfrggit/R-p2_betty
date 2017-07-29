@@ -25,7 +25,9 @@ pa_sol_label                = c(
     "greedy_2_%s_full"      = "HSF-ST Inf",
     "ga_1_%s_quota"         = "GA",
     "lyap_grd_%s_quota"     = "Lyapunov",
-    "lyap_grd_%s_full"      = "Lyapunov Inf"
+    "lyap_grd_%s_full"      = "Lyapunov Inf",
+    "random_1_%s_quota"     = "Random",
+    "random_1_%s_full"      = "Random Inf"
 )
 pa_sol_linetype             = c(
     "fill_1_%s"             = "11",
@@ -34,7 +36,9 @@ pa_sol_linetype             = c(
     "greedy_2_%s_full"      = "11",
     "ga_1_%s_quota"         = "solid",
     "lyap_grd_%s_quota"     = "solid",
-    "lyap_grd_%s_full"      = "11"
+    "lyap_grd_%s_full"      = "11",
+    "random_1_%s_quota"     = "solid",
+    "random_1_%s_full"      = "11"
 )
 pa_sol_alpha                = c(
     "fill_1_%s"             = 1,
@@ -43,7 +47,9 @@ pa_sol_alpha                = c(
     "greedy_2_%s_full"      = 0.5,
     "ga_1_%s_quota"         = 0.5,
     "lyap_grd_%s_quota"     = 1,
-    "lyap_grd_%s_full"      = 0.5
+    "lyap_grd_%s_full"      = 0.5,
+    "random_1_%s_quota"     = 0.5,
+    "random_1_%s_full"      = 0.5
 )
 lockBinding("pa_sol_label", globalenv())
 lockBinding("pa_sol_linetype", globalenv())
@@ -52,12 +58,14 @@ lockBinding("pa_sol_alpha", globalenv())
 pa_sol_shape =
 pp_sol_shape                = c(
     "fill_1_%s"             = 1,
-    "greedy_1_%s_quota"     = 6,
-    "greedy_2_%s_quota"     = 7,
-    "greedy_2_%s_full"      = 13,
-    "ga_1_%s_quota"         = 9,
-    "lyap_grd_%s_quota"     = 12,
-    "lyap_grd_%s_full"      = 10
+    "greedy_1_%s_quota"     = 5,
+    "greedy_2_%s_quota"     = 15,
+    "greedy_2_%s_full"      = 0,
+    "ga_1_%s_quota"         = 4,
+    "lyap_grd_%s_quota"     = 17,
+    "lyap_grd_%s_full"      = 2,
+    "random_1_%s_quota"     = 16,
+    "random_1_%s_full"      = 1
 )
 lockBinding("pp_sol_shape", globalenv())
 
@@ -68,7 +76,9 @@ pa_sol_color                = c(
     "greedy_2_%s_full"      = "blue4",
     "ga_1_%s_quota"         = "salmon3",
     "lyap_grd_%s_quota"     = "darkorchid2",
-    "lyap_grd_%s_full"      = "darkorchid4"
+    "lyap_grd_%s_full"      = "darkorchid4",
+    "random_1_%s_quota"     = "cyan2",
+    "random_1_%s_full"      = "cyan4"
 )
 lockBinding("pa_sol_color", globalenv())
 
