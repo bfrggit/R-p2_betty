@@ -57,7 +57,7 @@ data_files = c(
     "fill_1_%s",
     "random_1_%s_quota",
     "ga_1_%s_quota",
-    "greedy_1_%s_quota",
+    # "greedy_1_%s_quota",
     "greedy_2_%s_quota",
     "lyap_grd_%s_quota"
 )
