@@ -112,6 +112,9 @@ plot_obj = ggplot(data = dm, aes(x = nodes)) +
 if(nom_metric %in% c("nact", "util", "traffic")) {
     plot_obj = plot_obj + expand_limits(y = 0)
 }
+if(nom_metric %in% c("overall", "util", "traffic")) {
+    plot_obj = plot_obj + guides(color = guide_legend(ncol = 2))
+}
 if(nom_metric == "traffic") {
     plot_obj = plot_obj + geom_hline(
         yintercept = quota, color = "orangered"
