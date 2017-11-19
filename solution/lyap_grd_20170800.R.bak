@@ -1,7 +1,6 @@
 # lyap_grd.R
 #
 # Created: 2017-7-23
-# Updated: 2017-11-18
 #  Coding: Charles Zhu
 #
 if(!exists("EX_LYAP_GRD_R")) {
@@ -282,33 +281,9 @@ calc_work_mat_lyap_grd <<- function(
             delta_y = (1 - y_vec_init[jnd]) / val_m / val_k
             delta_d_t = data_type_specs$rate[knd_vali]
             delta_delta_l_t = 0
-
-            #---------------------------------------------------------------
-            # explaining computation of delta_delta_l_t
-            #
-            # according to Lyapunov func:
-            #   l_t = (q[n] - n * data_quota) ^ 2 / 2
-            # contributed by Md Yusuf Sarwar Uddin, the Lyapunov drift:
-            #   delta_l_t ~= (q[n] - n * data_quota) * d[n]
-            #
-            # note that we are incrementally selecting node-sensor pairs to
-            # maximize, using negative value for gamma_y:
-            #   gamma_x * x + gamma_u * u + gamma_y * y - gamma_l * delta_l_t
-            # where:
-            #   delta_delta_l_t
-            #     = (q[n] - n * data_quota) * (d[n] + delta_d_t) - delta_l_t
-            #     = (q[n] - n * data_quota) * delta_d_t
-            # hence:
-            #   (minus) delta_delta_l_t
-            #     = delta_d_t * (n * data_quota - q[n])
-            #     = delta_d_t * (this_quota - data_quota)
-            #
-            # note that the "/ data_quota" at the end of this expression is to
-            # automatically tune gamma_l for different data_quota setup
-            #
             if(is.finite(this_quota)) {
                 delta_delta_l_t = delta_d_t * (
-                    this_quota - data_quota
+                    this_quota - d_val_init - d_val_init - delta_d_t
                 ) / data_quota
             }
 
