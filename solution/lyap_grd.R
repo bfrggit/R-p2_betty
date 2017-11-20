@@ -287,28 +287,50 @@ calc_work_mat_lyap_grd <<- function(
             # explaining computation of delta_delta_l_t
             #
             # according to Lyapunov func:
-            #   l_t = (q[n] - n * data_quota) ^ 2 / 2
-            # contributed by Md Yusuf Sarwar Uddin, the Lyapunov drift:
-            #   delta_l_t ~= (q[n] - n * data_quota) * d[n]
+            #   l_t = (q[n] - n * d_q) ^ 2 / 2
+            # where q[n] is the total amount of data generated in the first n
+            # time frames, i.e. frame 0 to frame (n - 1);
+            # "d_q" stands for data_quota.
+            #
+            # contributed by Md Yusuf Sarwar Uddin, the Lyapunov drift approx.:
+            #   delta_l_t ~= (q[n] - n * d_q) * d[n]
+            #
+            # without using approx. the Lyapunov drift would be:
+            #   delta_l_t
+            #     = (q[n + 1] + q[n] - (2 * n + 1) * d_q) * (d[n] - d_q) / 2
+            #     = (q[n] - n * d_q + d[n] / 2 - d_q / 2) * (d[n] - d_q)
+            #     = (q[n] - n * d_q) * (d[n] - d_q) + (d[n] - d_q) ^ 2 / 2
             #
             # note that we are incrementally selecting node-sensor pairs to
-            # maximize, using negative value for gamma_y:
+            # maximize following expression, using negative value for gamma_y:
             #   gamma_x * x + gamma_u * u + gamma_y * y - gamma_l * delta_l_t
-            # where:
+            #
+            # denote "contribution of single choice" by delta_delta_l_t.
+            # if using approx. drift:
             #   delta_delta_l_t
-            #     = (q[n] - n * data_quota) * (d[n] + delta_d_t) - delta_l_t
-            #     = (q[n] - n * data_quota) * delta_d_t
+            #     = (q[n] - n * d_q) * (d[n] + delta_d_t) - delta_l_t
+            #     = (q[n] - n * d_q) * delta_d_t
             # hence:
             #   (minus) delta_delta_l_t
-            #     = delta_d_t * (n * data_quota - q[n])
-            #     = delta_d_t * (this_quota - data_quota)
+            #     = delta_d_t * (n * d_q - q[n])
+            #     = delta_d_t * (this_quota - d_q)
+            #
+            # if not using approx. drift:
+            #   delta_delta_l_t
+            #     = (q[n] - n * d_q) * delta_d_t
+            #       + (d[n] - d_q + delta_d_t / 2) * delta_d_t
+            #     = (q[n] + d[n] - (n + 1) * d_q + delta_d_t / 2) * delta_d_t
+            # hence:
+            #   (minus) delta_delta_l_t
+            #     = delta_d_t * ((n + 1) * d_q - q[n] - d[n] - delta_d_t / 2)
+            #     = delta_d_t * (this_quota - d[n] - delta_d_t / 2)
             #
             # note that the "/ data_quota" at the end of this expression is to
             # automatically tune gamma_l for different data_quota setup
             #
             if(is.finite(this_quota)) {
                 delta_delta_l_t = delta_d_t * (
-                    this_quota - data_quota
+                    this_quota - d_val_init - delta_d_t / 2
                 ) / data_quota
             }
 
