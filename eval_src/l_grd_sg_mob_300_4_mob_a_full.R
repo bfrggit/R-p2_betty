@@ -50,7 +50,7 @@ calc_work_mat_f = get_calc_work_mat_lyap_grd_f(
     gamma_x = gamma_x,
     gamma_u = gamma_u,
     gamma_y = gamma_y,
-    gamma_l = 5e-9
+    gamma_l = 1e-7
 )
 save_to_file = sprintf("%s/case_%d.RData", out_path, x_case)
 
