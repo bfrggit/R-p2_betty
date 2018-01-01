@@ -42,6 +42,7 @@ source("common/plot_res_mappings.R")
 
 library(ggplot2)
 library(reshape2)
+library(Cairo)
 
 # constants
 exp_set = sprintf("mob_300_4_mob_%s", mob_suffix)
@@ -125,7 +126,7 @@ ggsave(
         par_sparse, par_modulo
     ),
     plot = plot_obj,
-    device = "pdf",
+    device = cairo_pdf,
     width = 8,
     height = 6,
     units = "in",

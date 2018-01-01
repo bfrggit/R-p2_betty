@@ -29,6 +29,7 @@ source("common/plot_res_mappings.R")
 
 library(ggplot2)
 library(reshape2)
+library(Cairo)
 
 # constants
 exp_set = sprintf("mob_300_4_quota")
@@ -107,7 +108,7 @@ cat("Rendering...", "\n")
 ggsave(
     filename = "results/proc_t_quota.pdf",
     plot = plot_obj,
-    device = "pdf",
+    device = cairo_pdf,
     width = 8,
     height = 6,
     units = "in",

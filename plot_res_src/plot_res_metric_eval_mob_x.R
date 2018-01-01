@@ -44,6 +44,7 @@ source("common/plot_res_mappings.R")
 
 library(ggplot2)
 library(reshape2)
+library(Cairo)
 
 # name of metric must be valid, as listed in imported mappings
 stopifnot(nom_metric %in% names(pa_obj_label))
@@ -139,7 +140,7 @@ ggsave(
         par_sparse, par_modulo
     ),
     plot = plot_obj,
-    device = "pdf",
+    device = cairo_pdf,
     width = 8,
     height = 6,
     units = "in",
